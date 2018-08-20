@@ -29,7 +29,7 @@ setup(
     long_description=long_description,
 
     # The project's main homepage.
-    url='https://github.com/IntegralDefense/urltools',
+    url='https://github.com/IntegralDefense/urlfinderlib',
 
     # Author details
     author='Matthew Wilson',
@@ -62,11 +62,11 @@ setup(
     ],
 
     # What does your project relate to?
-    keywords='urltools',
+    keywords='urlfinderlib',
 
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
-    packages=['urltools'],
+    packages=['urlfinderlib'],
 
     # Alternatively, if you want to distribute just a my_module.py, uncomment
     # this:
