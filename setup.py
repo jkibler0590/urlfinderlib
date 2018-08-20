@@ -29,7 +29,7 @@ setup(
     long_description=long_description,
 
     # The project's main homepage.
-    url='https://github.com/automationator/urltools',
+    url='https://github.com/IntegralDefense/urltools',
 
     # Author details
     author='Matthew Wilson',
@@ -48,7 +48,7 @@ setup(
 
         # Indicate who your project is intended for
         'Intended Audience :: Developers',
-        'Topic :: Software Development :: Build Tools',
+        'Topic :: Software Development :: Libraries :: Python Modules',
 
         # Pick your license as you wish (should match "license" above)
         'License :: OSI Approved :: Apache Software License',
