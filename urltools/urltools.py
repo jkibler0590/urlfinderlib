@@ -207,7 +207,7 @@ def _html_find_urls(bytes, base_url=None):
 
         # Remove any leading //'s from the URLs.
         urls = [u[2:] if u.startswith('//') else u for u in urls]
-        
+
     return urls
 
 
@@ -351,6 +351,23 @@ def find_urls(thing, base_url=None, mimetype=None, log=False):
                 joined_url = urljoin(base_url, url)
                 if is_valid(joined_url):
                     valid_urls.append(joined_url)
+        except:
+            pass
+
+    # For the edge cases of HTML files where we didn't find any URLs, treat it as an ASCII file
+    # and re-find any URLs that way.
+    if not valid_urls and 'html' in mimetype:
+        try:
+            for url in _ascii_find_urls(thing):
+                # If the URL is valid as-is, just add it to the list.
+                if is_valid(url):
+                    valid_urls.append(url)
+
+                # The URL is not valid. If we were given a base URL, try joining them and checking if the result is valid.
+                elif base_url:
+                    joined_url = urljoin(base_url, url)
+                    if is_valid(joined_url):
+                        valid_urls.append(joined_url)
         except:
             pass
 
