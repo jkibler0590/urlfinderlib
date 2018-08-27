@@ -140,6 +140,23 @@ def _html_find_urls(bytes, base_url=None):
     # Loop over both soups.
     for soup in soups:
 
+        # Find any meta-refresh URLs.
+        meta_urls = []
+        meta_tags = soup.find_all('meta')
+        for meta_tag in meta_tags:
+            for key in meta_tag.attrs:
+                if key.lower() == 'content':
+                    value = meta_tag.attrs[key]
+                    if 'url=' in value:
+                        split_value = value.split('url=')
+                        url = split_value[1]
+                        # Remove any quotes around the URL.
+                        if url.startswith('"') and url.endswith('"'):
+                            url = url[1:-1]
+                        if url.startswith("'") and url.endswith("'"):
+                            url = url[1:-1]
+                        meta_urls.append(url)
+
         # Hacky way to find URLs in the CSS.
         css_urls = re.compile(r'url\((.*?)\)').findall(str(soup))
         
@@ -190,6 +207,7 @@ def _html_find_urls(bytes, base_url=None):
         else:
             urls = _recursive_tag_values(soup)
             urls += css_urls
+            urls += meta_urls
 
         # As a last-ditch effort, find URLs in the visible text of the HTML. However,
         # we only want to add strings that are valid URLs as they are. What we do not
