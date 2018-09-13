@@ -400,7 +400,7 @@ def find_urls(thing, base_url=None, mimetype=None, log=False):
         if 'urldefense.proofpoint.com/v2/url' in url:
             try:
                 query_u=parse_qs(urlparse(url).query)['u'][0]
-                decoded_url = query_u.replace('-3A', ':').replace('_', '/')
+                decoded_url = query_u.replace('-3A', ':').replace('_', '/').replace('-2D', '-')
                 if is_valid(decoded_url):
                     valid_urls.append(decoded_url)
             except:
