@@ -395,17 +395,6 @@ def find_urls(thing, base_url=None, mimetype=None, log=False):
         except:
             pass
 
-    # Check if any of the URLs are Proofpoint URLs and try to decode them.
-    for url in valid_urls[:]:
-        if 'urldefense.proofpoint.com/v2/url' in url:
-            try:
-                query_u=parse_qs(urlparse(url).query)['u'][0]
-                decoded_url = query_u.replace('-3A', ':').replace('_', '/').replace('-2D', '-')
-                if is_valid(decoded_url):
-                    valid_urls.append(decoded_url)
-            except:
-                logger.exception('Error decoding Proofpoint URL: {}'.format(url))
-
     # Return the valid URLs in ASCII form.
     ascii_urls = []
     for url in valid_urls:
@@ -417,6 +406,17 @@ def find_urls(thing, base_url=None, mimetype=None, log=False):
                 ascii_urls.append(url.decode('ascii', errors='ignore'))
         except:
             pass
+
+    # Check if any of the URLs are Proofpoint URLs and try to decode them.
+    for url in ascii_urls[:]:
+        if 'urldefense.proofpoint.com/v2/url' in url:
+            try:
+                query_u=parse_qs(urlparse(url).query)['u'][0]
+                decoded_url = query_u.replace('-3A', ':').replace('_', '/').replace('-2D', '-')
+                if is_valid(decoded_url):
+                    ascii_urls.append(decoded_url)
+            except:
+                logger.exception('Error decoding Proofpoint URL: {}'.format(url))
 
     # Add an unquoted version of each URL to the list.
     for url in ascii_urls[:]:
