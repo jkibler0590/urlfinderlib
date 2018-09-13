@@ -186,6 +186,10 @@ def _html_find_urls(bytes, base_url=None):
             for css_url in css_urls:
                 urls.append(urljoin(base_url, css_url))
 
+            # Join any of the meta-refresh URLs we found.
+            for meta_url in meta_urls:
+                urls.append(urljoin(base_url, meta_url))
+
             # Get all of the action URLs.
             for tag in soup.find_all(action=True):
                 urls.append(urljoin(base_url, tag['action']))
