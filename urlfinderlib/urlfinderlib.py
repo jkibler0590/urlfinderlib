@@ -418,6 +418,17 @@ def find_urls(thing, base_url=None, mimetype=None, log=False):
             except:
                 logger.exception('Error decoding Proofpoint URL: {}'.format(url))
 
+    # Check if any of the URLs are Outlook safelinks and try to decode them.
+    for url in ascii_urls[:]:
+        if 'safelinks.protection.outlook.com' in url:
+            try:
+                query_url=parse_qs(urlparse(url).query)['url'][0]
+                decoded_url = urllib.parse.unquote(query_url)
+                if is_valid(decoded_url):
+                    ascii_urls.append(decoded_url)
+            except:
+                logger.exception('Error decoding Outlook safelinks URL: {}'.format(url))
+
     # Add an unquoted version of each URL to the list.
     for url in ascii_urls[:]:
         ascii_urls.append(urllib.parse.unquote(url))
