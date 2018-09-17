@@ -143,14 +143,15 @@ def _html_find_urls(bytes, base_url=None):
     for soup in soups:
 
         # Find any meta-refresh URLs.
+        # <meta HTTP-Equiv="refresh" content="0; URL=UntitledNotebook1.html?run=login_cmd&statuts=f17ca2c829680ada2fec9fc87bc5f60601a4e2ccb79c625c49ba170249e46ab4">
         meta_urls = []
         meta_tags = soup.find_all('meta')
         for meta_tag in meta_tags:
             for key in meta_tag.attrs:
                 if key.lower() == 'content':
                     value = meta_tag.attrs[key]
-                    if 'url=' in value:
-                        split_value = value.split('url=')
+                    if 'url=' in value.lower():
+                        split_value = value.split('=', 1)
                         url = split_value[1]
                         # Remove any quotes around the URL.
                         if url.startswith('"') and url.endswith('"'):
