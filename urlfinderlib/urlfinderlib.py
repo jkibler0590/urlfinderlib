@@ -1,7 +1,9 @@
 from bs4 import BeautifulSoup
 from bs4.element import Comment
 from tld import get_tld
+from urllib.parse import parse_qs
 from urllib.parse import urljoin
+from urllib.parse import urlparse
 from urllib.parse import urlsplit
 import ipaddress
 import logging
@@ -141,14 +143,15 @@ def _html_find_urls(bytes, base_url=None):
     for soup in soups:
 
         # Find any meta-refresh URLs.
+        # <meta HTTP-Equiv="refresh" content="0; URL=UntitledNotebook1.html?run=login_cmd&statuts=f17ca2c829680ada2fec9fc87bc5f60601a4e2ccb79c625c49ba170249e46ab4">
         meta_urls = []
         meta_tags = soup.find_all('meta')
         for meta_tag in meta_tags:
             for key in meta_tag.attrs:
                 if key.lower() == 'content':
                     value = meta_tag.attrs[key]
-                    if 'url=' in value:
-                        split_value = value.split('url=')
+                    if 'url=' in value.lower():
+                        split_value = value.split('=', 1)
                         url = split_value[1]
                         # Remove any quotes around the URL.
                         if url.startswith('"') and url.endswith('"'):
@@ -185,6 +188,10 @@ def _html_find_urls(bytes, base_url=None):
             # Join any of the CSS URLs we found.
             for css_url in css_urls:
                 urls.append(urljoin(base_url, css_url))
+
+            # Join any of the meta-refresh URLs we found.
+            for meta_url in meta_urls:
+                urls.append(urljoin(base_url, meta_url))
 
             # Get all of the action URLs.
             for tag in soup.find_all(action=True):
@@ -400,6 +407,42 @@ def find_urls(thing, base_url=None, mimetype=None, log=False):
                 ascii_urls.append(url.decode('ascii', errors='ignore'))
         except:
             pass
+
+    # Check if any of the URLs are Proofpoint URLs and try to decode them.
+    for url in ascii_urls[:]:
+        if 'urldefense.proofpoint.com/v2/url' in url:
+            try:
+                query_u=parse_qs(urlparse(url).query)['u'][0]
+                decoded_url = query_u.replace('-3A', ':').replace('_', '/').replace('-2D', '-')
+                if is_valid(decoded_url):
+                    ascii_urls.append(decoded_url)
+            except:
+                if log:
+                    logger.exception('Error decoding Proofpoint URL: {}'.format(url))
+
+    # Check if any of the URLs are Outlook safelinks and try to decode them.
+    for url in ascii_urls[:]:
+        if 'safelinks.protection.outlook.com' in url:
+            try:
+                query_url=parse_qs(urlparse(url).query)['url'][0]
+                decoded_url = urllib.parse.unquote(query_url)
+                if is_valid(decoded_url):
+                    ascii_urls.append(decoded_url)
+            except:
+                if log:
+                    logger.exception('Error decoding Outlook safelinks URL: {}'.format(url))
+
+    # Check if any of the URLs are Google redirection URLs and try to decode them.
+    for url in ascii_urls[:]:
+        if 'www.google.com/url?' in url:
+            try:
+                query_url=parse_qs(urlparse(url).query)['q'][0]
+                decoded_url = urllib.parse.unquote(query_url)
+                if is_valid(decoded_url):
+                    ascii_urls.append(decoded_url)
+            except:
+                if log:
+                    logger.exception('Error decoding Google redirection URL: {}'.format(url))
 
     # Add an unquoted version of each URL to the list.
     for url in ascii_urls[:]:
