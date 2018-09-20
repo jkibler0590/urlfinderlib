@@ -417,7 +417,8 @@ def find_urls(thing, base_url=None, mimetype=None, log=False):
                 if is_valid(decoded_url):
                     ascii_urls.append(decoded_url)
             except:
-                logger.exception('Error decoding Proofpoint URL: {}'.format(url))
+                if log:
+                    logger.exception('Error decoding Proofpoint URL: {}'.format(url))
 
     # Check if any of the URLs are Outlook safelinks and try to decode them.
     for url in ascii_urls[:]:
@@ -428,7 +429,8 @@ def find_urls(thing, base_url=None, mimetype=None, log=False):
                 if is_valid(decoded_url):
                     ascii_urls.append(decoded_url)
             except:
-                logger.exception('Error decoding Outlook safelinks URL: {}'.format(url))
+                if log:
+                    logger.exception('Error decoding Outlook safelinks URL: {}'.format(url))
 
     # Check if any of the URLs are Google redirection URLs and try to decode them.
     for url in ascii_urls[:]:
@@ -439,7 +441,8 @@ def find_urls(thing, base_url=None, mimetype=None, log=False):
                 if is_valid(decoded_url):
                     ascii_urls.append(decoded_url)
             except:
-                logger.exception('Error decoding Google redirection URL: {}'.format(url))
+                if log:
+                    logger.exception('Error decoding Google redirection URL: {}'.format(url))
 
     # Add an unquoted version of each URL to the list.
     for url in ascii_urls[:]:
