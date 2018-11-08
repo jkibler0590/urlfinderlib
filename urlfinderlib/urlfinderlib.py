@@ -197,6 +197,10 @@ def _html_find_urls(bytes, base_url=None):
             for tag in soup.find_all(action=True):
                 urls.append(urljoin(base_url, tag['action']))
 
+            # Get all of the background URLs.
+            for tag in soup.find_all(background=True):
+                urls.append(urljoin(base_url, tag['background']))
+
             # Get all of the href URLs.
             for tag in soup.find_all(href=True):
                 urls.append(urljoin(base_url, tag['href']))
