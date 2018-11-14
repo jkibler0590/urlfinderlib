@@ -142,8 +142,30 @@ def _html_find_urls(bytes, base_url=None):
     # Loop over both soups.
     for soup in soups:
 
+        # Find any URLs embedded in script + document.write JavaScript.
+        # \r\n\r\ndocument.write(unescape('<meta HTTP-EQUIV="REFRESH" content="0; url=http://somebadsite.com/catalog/index.php">'));\r\n\r\n
+        script_urls = []
+        script_tags = soup.find_all('script')
+        for script_tag in script_tags:
+            for tag_content in script_tag.contents:
+                if 'document.write' in tag_content.lower():
+                    # Find the last position of the ( character, which should denote where the
+                    # code that they are writing to the page begins. Also find the position of
+                    # the first ) character which should denote where the code ends.
+                    code_begin = tag_content.rfind('(')
+                    code_end = tag_content.find(')')
+                    code = tag_content[code_begin+1:code_end]
+                    # Strip off any ' or " quotes.
+                    if code.startswith('\'') and code.endswith('\''):
+                        code = code[1:-1]
+                    if code.startswith('"') and code.endswith('"'):
+                        code = code[1:-1]
+                    # Turn the string into bytes and feed it back into the _html_find_urls function.
+                    code = code.encode()
+                    script_urls += _html_find_urls(code)
+
         # Find any meta-refresh URLs.
-        # <meta HTTP-Equiv="refresh" content="0; URL=UntitledNotebook1.html?run=login_cmd&statuts=f17ca2c829680ada2fec9fc87bc5f60601a4e2ccb79c625c49ba170249e46ab4">
+        # <meta HTTP-Equiv="refresh" content="0; URL=UntitledNotebook1.html">
         meta_urls = []
         meta_tags = soup.find_all('meta')
         for meta_tag in meta_tags:
@@ -189,6 +211,10 @@ def _html_find_urls(bytes, base_url=None):
             for css_url in css_urls:
                 urls.append(urljoin(base_url, css_url))
 
+            # Join any of the script URLs we found.
+            for script_url in script_urls:
+                urls.append(urljoin(base_url, script_url))
+
             # Join any of the meta-refresh URLs we found.
             for meta_url in meta_urls:
                 urls.append(urljoin(base_url, meta_url))
@@ -196,6 +222,10 @@ def _html_find_urls(bytes, base_url=None):
             # Get all of the action URLs.
             for tag in soup.find_all(action=True):
                 urls.append(urljoin(base_url, tag['action']))
+
+            # Get all of the background URLs.
+            for tag in soup.find_all(background=True):
+                urls.append(urljoin(base_url, tag['background']))
 
             # Get all of the href URLs.
             for tag in soup.find_all(href=True):
@@ -215,6 +245,7 @@ def _html_find_urls(bytes, base_url=None):
             urls = _recursive_tag_values(soup)
             urls += css_urls
             urls += meta_urls
+            urls += script_urls
 
         # As a last-ditch effort, find URLs in the visible text of the HTML. However,
         # we only want to add strings that are valid URLs as they are. What we do not
