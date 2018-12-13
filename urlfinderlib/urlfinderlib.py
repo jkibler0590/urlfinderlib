@@ -164,6 +164,10 @@ def _html_find_urls(bytes, base_url=None):
                     code = code.encode()
                     script_urls += _html_find_urls(code)
 
+        # Find any URLs embedded in <script> tags. Use the _ascii_find_urls function to try and catch everything.
+        for script_tag in script_tags:
+            script_urls += _ascii_find_urls(str(script_tag).encode('utf-8'))
+
         # Find any meta-refresh URLs.
         # <meta HTTP-Equiv="refresh" content="0; URL=UntitledNotebook1.html">
         meta_urls = []
