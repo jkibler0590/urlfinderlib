@@ -15,7 +15,7 @@ import warnings
 warnings.filterwarnings('ignore', category=UserWarning, module='bs4')
 
 
-def _tokenize(bytes, extra_tokens=True):
+def _tokenize(bytes, mimetype, extra_tokens=True):
     """ This function tokenizes the input bytes based on some common characters. It returns
         the tokens in ASCII format. """
 
@@ -48,13 +48,15 @@ def _tokenize(bytes, extra_tokens=True):
     #results = re.compile(b'\{([^\{\}]+)\}').findall(ascii_bytes)
     tokens += results
 
-    # Find anything sandwiched between ' '
-    results = re.compile(b'\'\s*(.*?)\s*\'').findall(ascii_bytes)
-    tokens += results
+    if not mimetype == 'data':
 
-    # Find anything sandwiched between " "
-    results = re.compile(b'\"\s*(.*?)\s*\"').findall(ascii_bytes)
-    tokens += results
+        # Find anything sandwiched between ' '
+        results = re.compile(b'\'\s*(.*?)\s*\'').findall(ascii_bytes)
+        tokens += results
+
+        # Find anything sandwiched between " "
+        results = re.compile(b'\"\s*(.*?)\s*\"').findall(ascii_bytes)
+        tokens += results
 
     # Find anything sandwiched between spaces
     results = re.compile(b'\ ([^\ ]+)\ ').findall(ascii_bytes)
@@ -96,15 +98,15 @@ def _tokenize(bytes, extra_tokens=True):
     return tokens
 
 
-def _ascii_find_urls(bytes, extra_tokens=True):
+def _ascii_find_urls(bytes, mimetype, extra_tokens=True):
     """ This function finds URLs inside of ASCII bytes. """
 
-    tokens = _tokenize(bytes, extra_tokens=extra_tokens)
+    tokens = _tokenize(bytes, mimetype, extra_tokens=extra_tokens)
 
     return tokens
 
 
-def _html_find_urls(bytes, base_url=None):
+def _html_find_urls(bytes, mimetype, base_url=None):
     """ This function finds URLs inside of valid HTML bytes. """
 
     def _recursive_tag_values(tag, values=[]):
@@ -162,11 +164,11 @@ def _html_find_urls(bytes, base_url=None):
                         code = code[1:-1]
                     # Turn the string into bytes and feed it back into the _html_find_urls function.
                     code = code.encode()
-                    script_urls += _html_find_urls(code)
+                    script_urls += _html_find_urls(code, mimetype)
 
         # Find any URLs embedded in <script> tags. Use the _ascii_find_urls function to try and catch everything.
         for script_tag in script_tags:
-            script_urls += _ascii_find_urls(str(script_tag).encode('utf-8'))
+            script_urls += _ascii_find_urls(str(script_tag).encode('utf-8'), mimetype)
 
         # Find any meta-refresh URLs.
         # <meta HTTP-Equiv="refresh" content="0; URL=UntitledNotebook1.html">
@@ -271,7 +273,7 @@ def _html_find_urls(bytes, base_url=None):
     return urls
 
 
-def _pdf_find_urls(bytes):
+def _pdf_find_urls(bytes, mimetype):
     """ This function finds URLs inside of PDF bytes. """
 
     # Start with only the ASCII bytes. Limit it to 12+ character strings.
@@ -342,7 +344,7 @@ def find_urls(thing, base_url=None, mimetype=None, log=False):
         # If the bytes are HTML...
         if 'html' in mimetype:
             try:
-                all_urls += _html_find_urls(thing, base_url)
+                all_urls += _html_find_urls(thing, mimetype, base_url)
             except:
                 if log:
                     logger.exception('Error when finding HTML URLs.')
@@ -350,7 +352,7 @@ def find_urls(thing, base_url=None, mimetype=None, log=False):
         # If the bytes are a PDF...
         elif 'pdf' in mimetype:
             try:
-                all_urls += _pdf_find_urls(thing)
+                all_urls += _pdf_find_urls(thing, mimetype)
             except:
                 if log:
                     logger.exception('Error when finding PDF URLs.')
@@ -362,19 +364,19 @@ def find_urls(thing, base_url=None, mimetype=None, log=False):
         # If the bytes are ASCII or Unicode text...
         elif 'ascii' in mimetype or 'text' in mimetype:
             try:
-                all_urls += _html_find_urls(thing, base_url)
+                all_urls += _html_find_urls(thing, mimetype, base_url)
             except:
                 if log:
                     logger.exception('Error when finding ASCII/HTML URLs.')
 
             try:
-                all_urls += _ascii_find_urls(thing)
+                all_urls += _ascii_find_urls(thing, mimetype)
             except:
                 if log:
                     logger.exception('Error when finding ASCII URLs.')
 
             try:
-                all_urls += _pdf_find_urls(thing)
+                all_urls += _pdf_find_urls(thing, mimetype)
             except:
                 if log:
                     logger.exception('Error when finding ASCII/PDF URLs.')
@@ -384,7 +386,7 @@ def find_urls(thing, base_url=None, mimetype=None, log=False):
 
             # Try to treat the bytes as a PDF and find URLs.
             try:
-                all_urls += _pdf_find_urls(thing)
+                all_urls += _pdf_find_urls(thing, mimetype)
             except:
                 if log:
                     logger.exception('Error when finding unknown/PDF URLs.')
@@ -393,7 +395,7 @@ def find_urls(thing, base_url=None, mimetype=None, log=False):
             # In that case, we don't want to find all possible ASCII URLs, as it will result
             # in a lot of bad URLs. Try to treat the bytes as ASCII and find URLs.
             try:
-                all_urls += _ascii_find_urls(thing, extra_tokens=False)
+                all_urls += _ascii_find_urls(thing, mimetype, extra_tokens=False)
             except:
                 if log:
                     logger.exception('Error when finding unknown/ASCII URLs.')
@@ -418,7 +420,7 @@ def find_urls(thing, base_url=None, mimetype=None, log=False):
     # and re-find any URLs that way.
     if not valid_urls and 'html' in mimetype:
         try:
-            for url in _ascii_find_urls(thing):
+            for url in _ascii_find_urls(thing, mimetype):
                 # If the URL is valid as-is, just add it to the list.
                 if is_valid(url):
                     valid_urls.append(url)
