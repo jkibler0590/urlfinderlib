@@ -204,7 +204,7 @@ def _html_find_urls(bytes, mimetype, base_url=None):
         for tag in soup.find_all('base'):
             try:
                 if tag['href']:
-                    base_url = tag['href']
+                    base_url = tag['href'].replace('\\\\', '//')
             except:
                 pass
 
