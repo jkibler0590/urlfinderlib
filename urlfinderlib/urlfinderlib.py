@@ -136,6 +136,7 @@ def _html_find_urls(bytes, mimetype, base_url=None):
     # Convert the bytes into soup. Also try url decoding the bytes to bypass some obfuscation.
     soups = []
     soups.append(BeautifulSoup(ascii_bytes, 'lxml'))
+    soups.append(BeautifulSoup(ascii_bytes, 'html.parser'))
     try:
         soups.append(BeautifulSoup(urllib.parse.unquote(str(ascii_bytes)), 'lxml'))
     except:
