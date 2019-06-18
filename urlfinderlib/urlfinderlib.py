@@ -103,6 +103,9 @@ def _ascii_find_urls(bytes, mimetype, extra_tokens=True):
 
     tokens = _tokenize(bytes, mimetype, extra_tokens=extra_tokens)
 
+    # Remove any leading mailto: from the URLs.
+    tokens = [t[7:] if t.lower().startswith('mailto:') else t for t in tokens]
+
     return tokens
 
 
@@ -267,6 +270,9 @@ def _html_find_urls(bytes, mimetype, base_url=None):
         # correctly in web browsers but is otherwise considered an invalid
         # URL by the is_valid function.
         urls = [u.strip() for u in urls]
+
+        # Remove any leading mailto: from the URLs.
+        urls = [u[7:] if u.lower().startswith('mailto:') else u for u in urls]
 
         # Remove any leading //'s from the URLs.
         urls = [u[2:] if u.startswith('//') else u for u in urls]
