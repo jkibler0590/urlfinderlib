@@ -5,7 +5,10 @@ from urllib.parse import parse_qs
 from urllib.parse import urljoin
 from urllib.parse import urlparse
 from urllib.parse import urlsplit
+import base64
+import binascii
 import ipaddress
+import json
 import logging
 import magic
 import re
@@ -499,6 +502,23 @@ def find_urls(thing, base_url=None, mimetype=None, log=False):
             except:
                 if log:
                     logger.exception('Error decoding Barracuda Link Protect URL: {}'.format(url))
+
+    # Check if any of the URLs are mandrillapp URLs and try to decode them.
+    for url in ascii_urls[:]:
+        if 'mandrillapp.com' in url and 'p=' in url:
+            try:
+                query_base64 = parse_qs(urlparse(url).query)['p'][0]
+                try:
+                    decoded = base64.b64decode(query_base64)
+                except binascii.Error:
+                    decoded = base64.b64decode(query_base64 + '==')
+                j = json.loads(decoded)
+                j = json.loads(j['p'])
+                if is_valid(j['url']):
+                    ascii_urls.append(j['url'])
+            except:
+                if log:
+                    logger.exception('Error decoding mandrillapp URL: {}'.format(url))
 
     # Add an unquoted version of each URL to the list.
     for url in ascii_urls[:]:
