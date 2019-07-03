@@ -2,6 +2,8 @@
 # uninstall with: tr '\n' '\0' < files.txt | xargs -0 sudo rm -f --
 files.txt
 
+.vscode/
+
 # Byte-compiled / optimized / DLL files
 *__pycache__*
 *.py[cod]
