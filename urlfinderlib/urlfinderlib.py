@@ -455,8 +455,10 @@ def find_urls(thing, base_url=None, mimetype=None, log=False):
         except:
             pass
 
-    # Check if any of the URLs are Proofpoint URLs and try to decode them.
+    # Try to decode various special URLs.
     for url in ascii_urls[:]:
+
+        # Check if any of the URLs are Proofpoint URLs and try to decode them.
         if 'urldefense.proofpoint.com/v2/url' in url:
             try:
                 query_u=parse_qs(urlparse(url).query)['u'][0]
@@ -467,8 +469,7 @@ def find_urls(thing, base_url=None, mimetype=None, log=False):
                 if log:
                     logger.exception('Error decoding Proofpoint URL: {}'.format(url))
 
-    # Check if any of the URLs are Outlook safelinks and try to decode them.
-    for url in ascii_urls[:]:
+        # Check if any of the URLs are Outlook safelinks and try to decode them.
         if 'safelinks.protection.outlook.com' in url:
             try:
                 query_url=parse_qs(urlparse(url).query)['url'][0]
@@ -479,8 +480,7 @@ def find_urls(thing, base_url=None, mimetype=None, log=False):
                 if log:
                     logger.exception('Error decoding Outlook safelinks URL: {}'.format(url))
 
-    # Check if any of the URLs are Google redirection URLs and try to decode them.
-    for url in ascii_urls[:]:
+        # Check if any of the URLs are Google redirection URLs and try to decode them.
         if 'www.google.com/url?' in url:
             try:
                 query_url=parse_qs(urlparse(url).query)['q'][0]
@@ -491,8 +491,7 @@ def find_urls(thing, base_url=None, mimetype=None, log=False):
                 if log:
                     logger.exception('Error decoding Google redirection URL: {}'.format(url))
 
-    # Check if any of the URLs are Barracuda Link Protect URLs and try to decode them.
-    for url in ascii_urls[:]:
+        # Check if any of the URLs are Barracuda Link Protect URLs and try to decode them.
         if 'linkprotect.cudasvc.com' in url:
             try:
                 query_url=parse_qs(urlparse(url).query)['a'][0]
@@ -503,8 +502,7 @@ def find_urls(thing, base_url=None, mimetype=None, log=False):
                 if log:
                     logger.exception('Error decoding Barracuda Link Protect URL: {}'.format(url))
 
-    # Check if any of the URLs are mandrillapp URLs and try to decode them.
-    for url in ascii_urls[:]:
+        # Check if any of the URLs are mandrillapp URLs and try to decode them.
         if 'mandrillapp.com' in url and 'p=' in url:
             try:
                 query_base64 = parse_qs(urlparse(url).query)['p'][0]
