@@ -132,6 +132,15 @@ def _html_find_urls(bytes, mimetype, base_url=None):
 
         return values
 
+    def tag_visible(element):
+        """ This sub-function gets the visible elements from the page. """
+
+        if element.parent.name in ['style', 'script', 'head', 'title', 'meta', '[document]']:
+            return False
+        if isinstance(element, Comment):
+            return False
+        return True
+
     # Only convert the ASCII bytes to HTML.
     ascii_bytes = b''.join(re.compile(b'[\x00\x09\x0A\x0D\x20-\x7E]{8,}').findall(bytes))
     ascii_bytes = ascii_bytes.replace(b'\x00', b'')
@@ -150,6 +159,21 @@ def _html_find_urls(bytes, mimetype, base_url=None):
 
     # Loop over both soups.
     for soup in soups:
+
+        # Remove any obfuscating <font> tags that do not render in the browser.
+        # NOTE: This lambda expression "should" work, but it causes several tests to fail for some reason.
+        # font_tag_list = soup.findAll(lambda tag: tag.name == 'font' and len(tag.attrs) == 1 and tag['id'])
+        font_tag_list = soup.findAll('font', {'id' : True})
+        font_tag_list = [tag for tag in font_tag_list if len(tag.attrs) == 1]
+        visible_urls = []
+        if font_tag_list:
+            for tag in font_tag_list:
+                tag.decompose()
+
+            texts = soup.findAll(text=True)
+            visible_texts = filter(tag_visible, texts)
+            text = ''.join(t for t in visible_texts).encode('ascii', errors='ignore')
+            visible_urls = _ascii_find_urls(text, 'ascii')
 
         # Find any URLs embedded in script + document.write JavaScript.
         # \r\n\r\ndocument.write(unescape('<meta HTTP-EQUIV="REFRESH" content="0; url=http://somebadsite.com/catalog/index.php">'));\r\n\r\n
@@ -259,6 +283,7 @@ def _html_find_urls(bytes, mimetype, base_url=None):
             urls += css_urls
             urls += meta_urls
             urls += script_urls
+            urls += visible_urls
 
         # As a last-ditch effort, find URLs in the visible text of the HTML. However,
         # we only want to add strings that are valid URLs as they are. What we do not
@@ -526,7 +551,7 @@ def find_urls(thing, base_url=None, mimetype=None, log=False):
     # catch URLs that may not have the scheme on the front of them.
     ascii_urls = ['http://' + u if not u.lower().startswith('http') and not u.lower().startswith('ftp') else u for u in ascii_urls]
 
-    # Remove any trailing "/" from the URLs so that they are consistent with how they go in CRITS.
+    # Remove any trailing "/" from the URLs so that they are consistent with how they go into the intel database.
     ascii_urls = [u[:-1] if u.endswith('/') else u for u in ascii_urls]
 
     return sorted(list(set(ascii_urls)))
@@ -566,11 +591,6 @@ def is_valid(url, fix=True):
         # Append the http scheme to the URL if it doesn't have any scheme.
         if fix and not split_url.scheme:
             split_url = urlsplit('http://{}'.format(url))
-
-        # Check for the edge case of results returned by find_urls, such as google.com URLs
-        # like: http://google.com#default#userData
-        if split_url.netloc and not split_url.path and split_url.fragment:
-            return False
 
         # Check if the netloc has a ':' in it, which indicates that
         # there is a port number specified. We need to remove that in order
