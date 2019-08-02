@@ -305,6 +305,12 @@ def _html_find_urls(bytes, mimetype, base_url=None):
         # Remove any leading //'s from the URLs.
         urls = [u[2:] if u.startswith('//') else u for u in urls]
 
+        # Fix cases like http:/ instead of http://
+        urls = [u.replace(':/', '://') if '://' not in u else u for u in urls]
+
+        # Remove any leading spaces or %20 from the URLs.
+        urls = [u.strip() for u in urls]
+
     return urls
 
 
