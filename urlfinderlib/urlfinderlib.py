@@ -305,6 +305,16 @@ def _html_find_urls(bytes, mimetype, base_url=None):
         # Remove any leading //'s from the URLs.
         urls = [u[2:] if u.startswith('//') else u for u in urls]
 
+        # Fix cases like http:/ instead of http://
+        urls = [u.replace(':/', '://') if '://' not in u else u for u in urls]
+
+        # Remove any leading spaces or %20 from the URLs.
+        urls = [u.strip() for u in urls]
+
+        # Fix any http://\\\\ and http://\\ instances.
+        urls = [u.replace('://\\\\', '://') for u in urls]
+        urls = [u.replace('://\\', '://') for u in urls]
+
     return urls
 
 
@@ -618,6 +628,14 @@ def is_valid(url, fix=True):
                 user_pass = re.compile(r'(.*?:.*?@)').findall(split_url.netloc)[0]
                 user_pass_url = url.replace(user_pass, '')
                 split_url = urlsplit(user_pass_url)
+                netloc = split_url.netloc
+
+            # Look for the edge case of the URL having a username without password notation.
+            # The path needs to have something in it to avoid counting email addresses as URLs.
+            if ':' not in split_url.netloc and '@' in split_url.netloc and len(split_url.path) > 1:
+                user = re.compile(r'(.*?@)').findall(split_url.netloc)[0]
+                user_url = url.replace(user, '')
+                split_url = urlsplit(user_url)
                 netloc = split_url.netloc
 
             # Check the netloc. Check if it is an IP address.
