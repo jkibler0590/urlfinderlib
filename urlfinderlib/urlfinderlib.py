@@ -163,7 +163,7 @@ def _html_find_urls(bytes, mimetype, base_url=None):
     # TO
     #  `https://linkedin.com/redirect?url=`
     try:
-        soups.append(BeautifulSoup(bytes.decode('utf-8').encode(encoding='ascii', errors='ignore')))
+        soups.append(BeautifulSoup(bytes.decode('utf-8').encode(encoding='ascii', errors='ignore'), features="lxml"))
     except Exception as e:
         logging.info("Encountered exception attempting universal character set hack: {}".format(e))
 
