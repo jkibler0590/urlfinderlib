@@ -156,6 +156,16 @@ def _html_find_urls(bytes, mimetype, base_url=None):
         soups.append(BeautifulSoup(urllib.parse.unquote(str(ascii_bytes)), 'lxml'))
     except:
         pass
+ 
+    # ugly hack for handling universal character set obfuscation like so:
+    # convert bytes -> string -> bytes will transform:
+    #  `https:/\\link\xc3\x82\xc2\xadedin.\xc3\x82\xc2\xadcom/redirect?url=`
+    # TO
+    #  `https://linkedin.com/redirect?url=`
+    try:
+        soups.append(BeautifulSoup(bytes.decode('utf-8').encode(encoding='ascii', errors='ignore')))
+    except Exception as e:
+        logging.info("Encountered exception attempting universal character set hack: {}".format(e))
 
     # Loop over both soups.
     for soup in soups:
