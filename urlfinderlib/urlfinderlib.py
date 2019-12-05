@@ -528,10 +528,18 @@ def find_urls(thing, base_url=None, mimetype=None, log=False):
         # Check if any of the URLs are Google redirection URLs and try to decode them.
         if 'www.google.com/url?' in url:
             try:
-                query_url=parse_qs(urlparse(url).query)['q'][0]
-                decoded_url = urllib.parse.unquote(query_url)
-                if is_valid(decoded_url):
-                    ascii_urls.append(decoded_url)
+                query_url=parse_qs(urlparse(url).query)
+                if 'url' in query_url:
+                    redirect_url = query_url['url'][0]
+                    redirect_url = urllib.parse.unquote(redirect_url)
+                    if is_valid(redirect_url):
+                        ascii_urls.append(redirect_url)
+                # not sure this format is even used any longer but leaving the code here
+                elif 'q' in query_url:
+                    query_url = query_url['q'][0]
+                    decoded_url = urllib.parse.unquote(query_url)
+                    if is_valid(decoded_url):
+                        ascii_urls.append(decoded_url)
             except:
                 if log:
                     logger.exception('Error decoding Google redirection URL: {}'.format(url))
