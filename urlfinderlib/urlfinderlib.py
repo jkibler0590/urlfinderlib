@@ -563,6 +563,14 @@ def find_urls(thing, base_url=None, mimetype=None, log=False):
                 if log:
                     logger.exception('Error decoding mandrillapp URL: {}'.format(url))
 
+        # Pull out URLs from linkedin.com/redirect service
+        if 'linkedin.com' in url and 'redirect' in url:
+            parsed_url = urlparse(url)
+            redirect_url_base = parse_qs(parsed_url.query)['url'][0]
+            redirect_url = redirect_url_base + '/#' + parsed_url.fragment
+            if is_valid(redirect_url):
+                ascii_urls.append(redirect_url)
+
     # Add an unquoted version of each URL to the list.
     for url in ascii_urls[:]:
         ascii_urls.append(urllib.parse.unquote(url))
