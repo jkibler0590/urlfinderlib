@@ -573,11 +573,20 @@ def find_urls(thing, base_url=None, mimetype=None, log=False):
 
         # Pull out URLs from linkedin.com/redirect service
         if 'linkedin.com' in url and 'redirect' in url:
-            parsed_url = urlparse(url)
-            redirect_url_base = parse_qs(parsed_url.query)['url'][0]
-            redirect_url = redirect_url_base + '/#' + parsed_url.fragment
-            if is_valid(redirect_url):
-                ascii_urls.append(redirect_url)
+            try:
+                parsed_url = urlparse(url)
+                redirect_url_base = parse_qs(parsed_url.query)['url'][0]
+                redirect_url = redirect_url_base + '/#' + parsed_url.fragment
+                if is_valid(redirect_url):
+                    ascii_urls.append(redirect_url)
+            except KeyError:
+                # Not a linkedIn redirect
+                # Likely a session_redirect like: https://www.linkedin.com/uas/login?session_redirect=https://www.linkedin.com/posts/plymouth-rock-assurance_this-giving-season-we-asked-some-of-our-activity-6612792916312158208-eZKd&trk=public-post_share-update_share-cta
+                if log:
+                    logger.info("got keyerror attempting to parse linkedIn URL: {}".format(url))
+            except:
+                if log:
+                    logger.exception('could not parse linkedIn URL: {}'.format(url))
 
     # Add an unquoted version of each URL to the list.
     for url in ascii_urls[:]:
