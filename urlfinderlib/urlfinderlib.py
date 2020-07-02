@@ -588,6 +588,27 @@ def find_urls(thing, base_url=None, mimetype=None, log=False):
                 if log:
                     logger.exception('could not parse linkedIn URL: {}'.format(url))
 
+        # search for base64 encoded URLs passed as parameters in URLs
+        is_base64 = re.compile(r'[A-Za-z0-9]+')
+        try:
+            parsed_url = urlsplit(url)
+            matches = []
+            matches.append(is_base64.search(parsed_url.path))
+            matches.append(is_base64.search(parsed_url.query))
+            matches.append(is_base64.search(parsed_url.fragment))
+            for match in matches:
+                if match:
+                    base64_url = match[0]
+                    try:
+                        decoded_url = base64.b64decode(base64_url).decode('ascii')
+                    except binascii.Error:
+                        decoded_url = base64.b64decode(base64_url+"==").decode('ascii')
+                    if is_valid(decoded_url):
+                        ascii_urls.append(decoded_url)
+        except Exception as e:
+            if log:
+                logger.error("got exception trying to find and decode base64 url parts for '{}' : {}".format(url, e))
+
     # Add an unquoted version of each URL to the list.
     for url in ascii_urls[:]:
         ascii_urls.append(urllib.parse.unquote(url))
