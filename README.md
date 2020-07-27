@@ -1,4 +1,6 @@
 # urlfinderlib
+[![Build Status](https://travis-ci.com/ace-ecosystem/urlfinderlib.svg?branch=master)](https://travis-ci.com/ace-ecosystem/urlfinderlib)
+[![codecov](https://codecov.io/gh/ace-ecosystem/urlfinderlib/branch/master/graph/badge.svg)](https://codecov.io/gh/ace-ecosystem/urlfinderlib)
 
 This is a Python (3.7+) library for finding URLs in documents and checking their validity.
 
