@@ -2,7 +2,8 @@
 # uninstall with: tr '\n' '\0' < files.txt | xargs -0 sudo rm -f --
 files.txt
 
-.vscode/
+.idea
+.vscode
 
 # Byte-compiled / optimized / DLL files
 *__pycache__*
@@ -48,7 +49,6 @@ pip-log.txt
 pip-delete-this-directory.txt
 
 # Unit test / coverage reports
-tests/*
 htmlcov/
 .tox/
 .coverage

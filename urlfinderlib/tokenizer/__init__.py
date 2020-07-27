@@ -1,0 +1,1 @@
+from urlfinderlib.tokenizer.tokenizer import UTF8Tokenizer

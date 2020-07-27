@@ -1,0 +1,22 @@
+Received: by server (mbox test)
+X-From_: bob@domain.com Sun Jul 26 19:40:22 2020
+Return-Path: <bob@domain.com>
+Received: from psmtp.com (exprod5mx37.test.com [1.2.3.4])...
+Message-Id: <200308210240.h7L2e5A0016623@server.domain.com>
+Received: from source ([2.3.4.5]) by exprod5mx37.test.com ...
+From: "Bob Test" <bob@domain.com>
+To: "Alice Test" <alice@domain.com>
+Date: Sun, 26 Jul 2020 16:02:43 -0500
+Subject: Test
+MIME-Version: 1.0
+Content-Type: multipart/mixed;
+        boundary="XXXXboundary text"
+
+This is a multipart message in MIME format.
+
+--XXXXboundary text
+Content-Type: text/plain
+
+Hello Alice.
+--XXXXboundary text
+
