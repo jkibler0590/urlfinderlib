@@ -1,2 +1,2 @@
-from .urlfinderlib import find_urls
-from .urlfinderlib import is_valid
+from urlfinderlib.url import URL, is_url
+from urlfinderlib.urlfinderlib import find_urls
