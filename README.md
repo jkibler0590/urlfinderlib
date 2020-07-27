@@ -1,6 +1,4 @@
 # urlfinderlib
-[![Build Status](https://travis-ci.org/automationator/urlfinderlib.svg?branch=master)](https://travis-ci.org/automationator/urlfinderlib)
-[![codecov](https://codecov.io/gh/automationator/urlfinderlib/branch/master/graph/badge.svg)](https://codecov.io/gh/automationator/urlfinderlib)
 
 This is a Python (3.7+) library for finding URLs in documents and checking their validity.
 
