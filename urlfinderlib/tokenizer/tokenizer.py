@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import re
 
 from itertools import chain
@@ -80,7 +78,7 @@ class UTF8Tokenizer:
     def _get_indices_of_sequence(self, sequence: str) -> List[int]:
         return [m.start() for m in re.finditer(re.escape(sequence), self.utf8_string)]
 
-    def _get_new_tokenizer_with_replaced_characters(self, replace_tokens: List[str]) -> UTF8Tokenizer:
+    def _get_new_tokenizer_with_replaced_characters(self, replace_tokens: List[str]) -> 'UTF8Tokenizer':
         new_tokenizer = UTF8Tokenizer(self.utf8_string.encode('utf-8'))
         for b in replace_tokens:
             new_tokenizer.utf8_string = new_tokenizer.utf8_string.replace(b, ' ')

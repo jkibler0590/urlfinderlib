@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import base64
 import binascii
 import html
@@ -53,7 +51,7 @@ def get_ascii_url(url: str) -> str:
     return url.encode('ascii', errors='ignore').decode()
 
 
-def get_every_url(urls: Set[URL], ret=None) -> Set[str]:
+def get_every_url(urls: Set['URL'], ret=None) -> Set[str]:
     if ret is None:
         ret = set()
 
@@ -288,7 +286,7 @@ class URL:
 
         return values
 
-    def get_child_urls(self) -> Set[URL]:
+    def get_child_urls(self) -> Set['URL']:
         child_urls = self.get_query_urls()
         child_urls |= self.get_base64_urls()
 
