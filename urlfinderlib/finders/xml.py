@@ -1,7 +1,7 @@
 from typing import Set, Union
 from xml.etree import cElementTree
 
-import urlfinderlib.finders as finders
+from .text import TextUrlFinder
 
 
 class XmlUrlFinder:
@@ -21,7 +21,7 @@ class XmlUrlFinder:
 
         urls = set()
         for possible_url in possible_urls:
-            urls |= finders.TextUrlFinder(possible_url).find_urls()
+            urls |= TextUrlFinder(possible_url).find_urls()
 
         return urls
 

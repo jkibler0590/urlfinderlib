@@ -6,10 +6,10 @@ from bs4.element import Comment
 from typing import Set, Union
 from urllib.parse import unquote, urljoin
 
-import urlfinderlib.finders as finders
 import urlfinderlib.helpers as helpers
 import urlfinderlib.tokenizer as tokenizer
 
+from .text import TextUrlFinder
 from urlfinderlib import is_url
 from urlfinderlib.url import get_valid_urls
 
@@ -74,7 +74,7 @@ class HtmlSoupUrlFinder:
 
     def _find_visible_urls(self) -> Set[str]:
         visible_text = self._get_visible_text()
-        return finders.TextUrlFinder(visible_text).find_urls()
+        return TextUrlFinder(visible_text).find_urls()
 
     def _get_action_values(self) -> Set[str]:
         return {helpers.fix_possible_value(tag['action']) for tag in self._soup.find_all(action=True)}

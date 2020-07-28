@@ -68,7 +68,7 @@ def get_netloc_idna(url: str) -> str:
     except ValueError:
         return ''
 
-    if split_url.netloc.isascii():
+    if all(ord(char) < 128 for char in split_url.netloc):
         return split_url.netloc.lower()
 
     try:
@@ -86,7 +86,7 @@ def get_netloc_unicode(url: str) -> str:
     except ValueError:
         return ''
 
-    if not split_url.netloc.isascii():
+    if any(ord(char) >= 128 for char in split_url.netloc):
         return split_url.netloc.lower()
 
     try:
@@ -279,10 +279,9 @@ class URL:
         for path in self._paths.values():
             for match in base64_pattern.findall(path):
                 try:
-                    values.add(base64.b64decode(match).decode('utf-8', errors='ignore'))
-                except binascii.Error as err:
-                    if 'Incorrect padding' in str(err):
-                        values.add(base64.b64decode(f'{match}==').decode('utf-8', errors='ignore'))
+                    values.add(base64.b64decode(f'{match}===').decode('utf-8', errors='ignore'))
+                except binascii.Error:
+                    pass
 
         return values
 
