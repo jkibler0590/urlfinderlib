@@ -1,7 +1,8 @@
 from typing import Set, Union
 
-import urlfinderlib.finders as finders
 import urlfinderlib.tokenizer as tokenizer
+
+from .text import TextUrlFinder
 
 
 class PdfUrlFinder:
@@ -23,4 +24,4 @@ class PdfUrlFinder:
 
         blob = '\n'.join(matches).encode('utf-8', errors='ignore')
 
-        return finders.TextUrlFinder(blob).find_urls()
+        return TextUrlFinder(blob).find_urls()
