@@ -9,7 +9,8 @@ class UTF8Tokenizer:
         if isinstance(blob, str):
             blob = blob.encode('utf-8', errors='ignore')
 
-        self.utf8_string = blob.decode('utf-8', errors='ignore')
+        self.blob = blob
+        self.utf8_string = self.blob.decode('utf-8', errors='ignore')
 
     def get_all_tokens(self, strict: bool = False) -> Iterator[str]:
         return chain(
@@ -34,6 +35,10 @@ class UTF8Tokenizer:
     def get_split_tokens_after_replace(self, replace_tokens: List[str]) -> Iterator[str]:
         new_tokenizer = self._get_new_tokenizer_with_replaced_characters(replace_tokens)
         return new_tokenizer.get_split_tokens()
+
+    def get_ascii_strings(self, length: int = 4) -> Iterator[str]:
+        pattern = b'[\x20-\x7E]{%b,}' % str(length).encode('ascii', errors='ignore')
+        return (x.group(0).decode('ascii') for x in re.finditer(pattern, self.blob))
 
     def get_tokens_between_angle_brackets(self, strict: bool = False) -> Iterator[str]:
         return self.get_tokens_between_open_and_close_sequence('<', '>', strict=strict)

@@ -52,6 +52,17 @@ def generate_open_close_decorator(open_char: bytes, close_char: bytes) -> pytest
     ])
 
 
+def test_get_ascii_strings():
+    tok = UTF8Tokenizer(b'This is\x8aa test with strings and \xc2\xa9 unicode characters')
+    expected = ['This is', 'a test with strings and ', ' unicode characters']
+    results = tok.get_ascii_strings(length=4)
+    assert sorted(results) == sorted(expected)
+
+    expected = ['a test with strings and ', ' unicode characters']
+    results = tok.get_ascii_strings(length=8)
+    assert sorted(results) == sorted(expected)
+
+
 def test_get_byte_lines():
     test_bytes = b'''This is a test
 that has
