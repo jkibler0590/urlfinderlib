@@ -53,12 +53,12 @@ class HtmlSoupUrlFinder:
         possible_urls |= self._find_visible_urls()
 
         tok = tokenizer.UTF8Tokenizer(str(self._soup))
-
-        possible_urls |= set(tok.get_line_tokens())
-        possible_urls |= set(tok.get_split_tokens())
         possible_urls |= set(tok.get_tokens_between_double_quotes())
         possible_urls |= set(tok.get_tokens_between_single_quotes())
-        possible_urls |= set(tok.get_tokens_between_spaces())
+
+        srcset_values = self._get_srcset_values()
+        possible_urls = {u for u in possible_urls if not any(srcset_value in u for srcset_value in srcset_values)}
+        possible_urls |= {urljoin(self._base_url, u) for u in srcset_values}
 
         return get_valid_urls(possible_urls)
 
@@ -136,6 +136,16 @@ class HtmlSoupUrlFinder:
 
     def _get_src_values(self) -> Set[str]:
         return {helpers.fix_possible_value(tag['src']) for tag in self._soup.find_all(src=True)}
+
+    def _get_srcset_values(self) -> Set[str]:
+        values = set()
+
+        srcset_values = {helpers.fix_possible_value(tag['srcset']) for tag in self._soup.find_all(srcset=True)}
+        for srcset_value in srcset_values:
+            splits = srcset_value.split(',')
+            values |= {s.strip().split(' ')[0] for s in splits}
+
+        return values
 
     def _get_tag_attribute_values(self) -> Set[str]:
         all_values = set()

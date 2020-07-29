@@ -30,7 +30,10 @@ def test_find_urls_html():
         'http://domain.com/xmlns',
         'http://domain3.com',
         'http://faß.de/re.php',
-        'http://xn--fa-hia.de/re.php'
+        'http://xn--fa-hia.de/re.php',
+        'http://domain2.com/image-small.png',
+        'http://domain2.com/image-medium.png',
+        'http://domain2.com/image-large.png'
     }
 
     assert urlfinderlib.find_urls(blob) == expected_urls
