@@ -52,6 +52,66 @@ def generate_open_close_decorator(open_char: bytes, close_char: bytes) -> pytest
     ])
 
 
+def test_get_byte_lines():
+    test_bytes = b'''This is a test
+that has
+multiple
+lines.'''
+    tok = UTF8Tokenizer(test_bytes)
+    expected = ['This is a test', 'that has', 'multiple', 'lines.']
+    results = list(tok.get_line_tokens())
+    assert sorted(results) == sorted(expected)
+
+
+def test_get_split_bytes():
+    tok = UTF8Tokenizer(b'This is a simple\ttest.')
+    expected = ['This', 'is', 'a', 'simple', 'test.']
+    results = tok.get_split_tokens()
+    assert sorted(results) == sorted(expected)
+
+
+def test_get_split_bytes_after_replace():
+    tok = UTF8Tokenizer(b'This is a "simple"\t<test].')
+    expected = ['This', 'is', 'a', 'simple', 'test', '.']
+    results = tok.get_split_tokens_after_replace(['"', '<', ']'])
+    assert sorted(results) == sorted(expected)
+
+
+@generate_open_close_decorator(b'<', b'>')
+def test_get_tokens_between_angle_brackets(open_close_blob, expected):
+    tok = UTF8Tokenizer(open_close_blob)
+    results = tok.get_tokens_between_angle_brackets()
+    assert sorted(results) == sorted(expected)
+
+
+@generate_same_character_decorator(b'`')
+def test_get_tokens_between_backticks(char_blob, expected):
+    tok = UTF8Tokenizer(char_blob)
+    results = tok.get_tokens_between_backticks()
+    assert sorted(results) == sorted(expected)
+
+
+@generate_open_close_decorator(b'[', b']')
+def test_get_tokens_between_brackets(open_close_blob, expected):
+    tok = UTF8Tokenizer(open_close_blob)
+    results = tok.get_tokens_between_brackets()
+    assert sorted(results) == sorted(expected)
+
+
+@generate_open_close_decorator(b'{', b'}')
+def test_get_tokens_between_curly_brackets(open_close_blob, expected):
+    tok = UTF8Tokenizer(open_close_blob)
+    results = tok.get_tokens_between_curly_brackets()
+    assert sorted(results) == sorted(expected)
+
+
+@generate_same_character_decorator(b'"')
+def test_get_tokens_between_double_quotes(char_blob, expected):
+    tok = UTF8Tokenizer(char_blob)
+    results = tok.get_tokens_between_double_quotes()
+    assert sorted(results) == sorted(expected)
+
+
 def test_get_tokens_between_open_and_close_sequence_strict():
     blob = b'''<</S/URI/URI(http://domain.com/URI)>>
 <</Type/Action/S/URI/URI(http://domain2.com) >>
@@ -76,45 +136,10 @@ def test_get_tokens_between_parentheses(open_close_blob, expected):
     assert sorted(results) == sorted(expected)
 
 
-@generate_open_close_decorator(b'{', b'}')
-def test_get_tokens_between_curly_brackets(open_close_blob, expected):
-    tok = UTF8Tokenizer(open_close_blob)
-    results = tok.get_tokens_between_curly_brackets()
-    assert sorted(results) == sorted(expected)
-
-
-@generate_open_close_decorator(b'<', b'>')
-def test_get_tokens_between_angle_brackets(open_close_blob, expected):
-    tok = UTF8Tokenizer(open_close_blob)
-    results = tok.get_tokens_between_angle_brackets()
-    assert sorted(results) == sorted(expected)
-
-
-@generate_open_close_decorator(b'[', b']')
-def test_get_tokens_between_brackets(open_close_blob, expected):
-    tok = UTF8Tokenizer(open_close_blob)
-    results = tok.get_tokens_between_brackets()
-    assert sorted(results) == sorted(expected)
-
-
-@generate_same_character_decorator(b'"')
-def test_get_tokens_between_double_quotes(char_blob, expected):
-    tok = UTF8Tokenizer(char_blob)
-    results = tok.get_tokens_between_double_quotes()
-    assert sorted(results) == sorted(expected)
-
-
 @generate_same_character_decorator(b"'")
 def test_get_tokens_between_single_quotes(char_blob, expected):
     tok = UTF8Tokenizer(char_blob)
     results = tok.get_tokens_between_single_quotes()
-    assert sorted(results) == sorted(expected)
-
-
-@generate_same_character_decorator(b'`')
-def test_get_tokens_between_backticks(char_blob, expected):
-    tok = UTF8Tokenizer(char_blob)
-    results = tok.get_tokens_between_backticks()
     assert sorted(results) == sorted(expected)
 
 
@@ -125,35 +150,10 @@ def test_get_tokens_between_spaces():
     assert sorted(results) == sorted(expected)
 
 
-def test_get_split_bytes():
-    tok = UTF8Tokenizer(b'This is a simple\ttest.')
-    expected = ['This', 'is', 'a', 'simple', 'test.']
-    results = tok.get_split_tokens()
-    assert sorted(results) == sorted(expected)
-
-
-def test_get_byte_lines():
-    test_bytes = b'''This is a test
-that has
-multiple
-lines.'''
-    tok = UTF8Tokenizer(test_bytes)
-    expected = ['This is a test', 'that has', 'multiple', 'lines.']
-    results = list(tok.get_line_tokens())
-    assert sorted(results) == sorted(expected)
-
-
 def test_get_tokens_between_spaces_after_replace():
     tok = UTF8Tokenizer(b'This is a "simple" <test].')
     expected = ['is', 'a', 'simple', 'test']
     results = tok.get_tokens_between_spaces_after_replace(['"', '<', ']'])
-    assert sorted(results) == sorted(expected)
-
-
-def test_get_split_bytes_after_replace():
-    tok = UTF8Tokenizer(b'This is a "simple"\t<test].')
-    expected = ['This', 'is', 'a', 'simple', 'test', '.']
-    results = tok.get_split_tokens_after_replace(['"', '<', ']'])
     assert sorted(results) == sorted(expected)
 
 
