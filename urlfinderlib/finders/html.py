@@ -167,6 +167,8 @@ class HtmlSoupUrlFinder:
         return found_base_url if found_base_url else given_base_url
 
     def _remove_obfuscating_font_tags_from_soup(self) -> None:
-        font_tags = self._soup.find_all(lambda t: t.name == 'font' and len(t.attrs) == 1 and 'id' in t and t['id'])
+        font_tags = self._soup.find_all(
+            lambda t: t.name == 'font' and len(t.attrs) == 1 and 'id' in t.attrs and t['id'])
+
         for tag in font_tags:
             tag.decompose()
