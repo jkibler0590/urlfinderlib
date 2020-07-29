@@ -6,8 +6,13 @@ this_dir = os.path.dirname(os.path.realpath(__file__))
 files_dir = os.path.realpath(f'{this_dir}/files')
 
 
-def test_find_urls_from_text():
-    assert urlfinderlib.find_urls('test') == set()
+def test_find_urls_binary():
+    with open(f'{files_dir}/hello.bin', 'rb') as f:
+        blob = f.read()
+
+    expected_urls = {'http://domain.com'}
+
+    assert urlfinderlib.find_urls(blob) == expected_urls
 
 
 def test_find_urls_html():
@@ -31,13 +36,6 @@ def test_find_urls_html():
     assert urlfinderlib.find_urls(blob) == expected_urls
 
 
-def test_find_urls_rfc822():
-    with open(f'{files_dir}/email.rfc822', 'rb') as f:
-        blob = f.read()
-
-    assert urlfinderlib.find_urls(blob) == set()
-
-
 def test_find_urls_pdf():
     with open(f'{files_dir}/pdf.pdfparser', 'rb') as f:
         blob = f.read()
@@ -50,6 +48,17 @@ def test_find_urls_pdf():
     }
 
     assert urlfinderlib.find_urls(blob) == expected_urls
+
+
+def test_find_urls_rfc822():
+    with open(f'{files_dir}/email.rfc822', 'rb') as f:
+        blob = f.read()
+
+    assert urlfinderlib.find_urls(blob) == set()
+
+
+def test_find_urls_text():
+    assert urlfinderlib.find_urls('test') == set()
 
 
 def test_find_urls_text_xml():

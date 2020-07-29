@@ -22,8 +22,6 @@ def find_urls(blob: Union[bytes, str], base_url: str = '', mimetype: str = '') -
         return set()
     elif 'html' in mimetype:
         urls |= finders.HtmlUrlFinder(blob, base_url=base_url).find_urls()
-    elif 'pdf' in mimetype:
-        urls |= finders.PdfUrlFinder(blob).find_urls()
     elif 'xml' in mimetype:
         urls |= finders.XmlUrlFinder(blob).find_urls()
     elif 'text' in mimetype:
@@ -31,6 +29,8 @@ def find_urls(blob: Union[bytes, str], base_url: str = '', mimetype: str = '') -
             urls |= finders.HtmlUrlFinder(blob, base_url=base_url).find_urls()
         else:
             urls |= finders.TextUrlFinder(blob).find_urls()
+    else:
+        urls |= finders.DataUrlFinder(blob).find_urls()
 
     urls = {URL(u) for u in urls}
 
