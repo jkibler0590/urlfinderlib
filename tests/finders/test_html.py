@@ -135,6 +135,25 @@ def test_get_src_values():
     assert finder._get_src_values() == {'src', 'src2'}
 
 
+def test_get_srcset_values():
+    html = """
+<img src="http://domain2.com/image-small.png"
+    srcset="http://domain2.com/image-small.png 320w,
+        http://domain2.com/image-medium.png 800w,
+        http://domain2.com/image-large.png 1200w"
+    sizes="80vw"
+    alt="Image description">
+"""
+
+    this_soup = BeautifulSoup(html, features='html.parser')
+    finder = finders.HtmlSoupUrlFinder(this_soup)
+    assert finder._get_srcset_values() == {
+        'http://domain2.com/image-small.png',
+        'http://domain2.com/image-medium.png',
+        'http://domain2.com/image-large.png'
+    }
+
+
 def test_get_tag_attribute_values():
     finder = finders.HtmlSoupUrlFinder(soup)
     expected = {

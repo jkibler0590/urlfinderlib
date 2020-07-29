@@ -129,12 +129,6 @@ def test_no_quotes_in_anchor_tag():
     assert finder.find_urls() == {'http://domain.com'}
 
 
-def test_no_tags():
-    html = b'http://domain.com'
-    finder = urlfinderlib.finders.HtmlUrlFinder(html)
-    assert finder.find_urls() == {'http://domain.com'}
-
-
 def test_non_utf8_characters():
     html = b'<html><body><a href="http://domain\x8a.com"></a></body></html>'
     finder = urlfinderlib.finders.HtmlUrlFinder(html)
