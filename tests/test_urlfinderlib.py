@@ -39,6 +39,13 @@ def test_find_urls_html():
     assert urlfinderlib.find_urls(blob) == expected_urls
 
 
+def test_find_urls_ooxml():
+    with open(f'{files_dir}/test.ooxml', 'rb') as f:
+        blob = f.read()
+
+    assert urlfinderlib.find_urls(blob) == set()
+
+
 def test_find_urls_pdf():
     with open(f'{files_dir}/test.pdfparser', 'rb') as f:
         blob = f.read()
