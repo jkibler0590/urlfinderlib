@@ -12,7 +12,7 @@ class TextUrlFinder:
 
         self.blob = blob
 
-    def find_urls(self, strict: bool = False) -> Set[str]:
+    def find_urls(self, strict: bool = True) -> Set[str]:
         tok = tokenizer.UTF8Tokenizer(self.blob)
 
         tokens = {t for t in tok.get_all_tokens(strict=strict) if '.' in t}
