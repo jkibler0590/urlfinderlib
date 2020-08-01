@@ -28,7 +28,7 @@ def find_urls(blob: Union[bytes, str], base_url: str = '', mimetype: str = '') -
         if b'xmlns' in blob and b'</' in blob:
             urls |= finders.HtmlUrlFinder(blob, base_url=base_url).find_urls()
         else:
-            urls |= finders.TextUrlFinder(blob).find_urls()
+            urls |= finders.TextUrlFinder(blob).find_urls(strict=True)
     else:
         urls |= finders.DataUrlFinder(blob).find_urls()
 

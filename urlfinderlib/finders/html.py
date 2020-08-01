@@ -74,7 +74,7 @@ class HtmlSoupUrlFinder:
 
     def _find_visible_urls(self) -> Set[str]:
         visible_text = self._get_visible_text()
-        return TextUrlFinder(visible_text).find_urls()
+        return TextUrlFinder(visible_text).find_urls(strict=True)
 
     def _get_action_values(self) -> Set[str]:
         return {helpers.fix_possible_value(tag['action']) for tag in self._soup.find_all(action=True)}
