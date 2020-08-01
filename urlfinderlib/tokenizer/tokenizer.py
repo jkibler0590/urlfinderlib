@@ -61,7 +61,7 @@ class UTF8Tokenizer:
         closed_indices = self._get_indices_of_sequence(close_sequence)
 
         all_tokens = (self.utf8_string[o + 1:c] for o in open_indices for c in closed_indices if o < c)
-        return (t for t in all_tokens if open_sequence not in t and close_sequence not in t) if strict else all_tokens
+        return (t for t in all_tokens if close_sequence not in t) if strict else all_tokens
 
     def get_tokens_between_parentheses(self, strict: bool = False) -> Iterator[str]:
         return self.get_tokens_between_open_and_close_sequence('(', ')', strict=strict)

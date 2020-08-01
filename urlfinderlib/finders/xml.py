@@ -21,7 +21,7 @@ class XmlUrlFinder:
 
         urls = set()
         for possible_url in possible_urls:
-            urls |= TextUrlFinder(possible_url).find_urls()
+            urls |= TextUrlFinder(possible_url).find_urls(strict=True)
 
         return urls
 
