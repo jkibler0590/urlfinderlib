@@ -5,7 +5,11 @@ from typing import Set, Union
 import urlfinderlib.finders as finders
 
 from urlfinderlib import URL
-from urlfinderlib.url import get_every_url, remove_partial_urls
+from urlfinderlib.url import get_all_parent_and_child_urls, remove_partial_urls
+
+
+def get_url_permutations(url: str) -> Set[str]:
+    return URL(url).permutations
 
 
 def find_urls(blob: Union[bytes, str], base_url: str = '', mimetype: str = '') -> Set[str]:
@@ -37,4 +41,4 @@ def find_urls(blob: Union[bytes, str], base_url: str = '', mimetype: str = '') -
 
     urls = {URL(u) for u in urls}
 
-    return remove_partial_urls(get_every_url(urls))
+    return remove_partial_urls(get_all_parent_and_child_urls(urls))

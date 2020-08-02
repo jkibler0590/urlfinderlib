@@ -91,7 +91,7 @@ def test_get_split_bytes_after_replace():
 @generate_open_close_decorator(b'<', b'>')
 def test_get_tokens_between_angle_brackets(open_close_blob, expected):
     tok = UTF8Tokenizer(open_close_blob)
-    results = tok.get_tokens_between_angle_brackets()
+    results = tok.get_tokens_between_angle_brackets(strict=False)
     assert sorted(results) == sorted(expected)
 
 
@@ -105,14 +105,14 @@ def test_get_tokens_between_backticks(char_blob, expected):
 @generate_open_close_decorator(b'[', b']')
 def test_get_tokens_between_brackets(open_close_blob, expected):
     tok = UTF8Tokenizer(open_close_blob)
-    results = tok.get_tokens_between_brackets()
+    results = tok.get_tokens_between_brackets(strict=False)
     assert sorted(results) == sorted(expected)
 
 
 @generate_open_close_decorator(b'{', b'}')
 def test_get_tokens_between_curly_brackets(open_close_blob, expected):
     tok = UTF8Tokenizer(open_close_blob)
-    results = tok.get_tokens_between_curly_brackets()
+    results = tok.get_tokens_between_curly_brackets(strict=False)
     assert sorted(results) == sorted(expected)
 
 
@@ -143,7 +143,7 @@ def test_get_tokens_between_open_and_close_sequence_strict():
 @generate_open_close_decorator(b'(', b')')
 def test_get_tokens_between_parentheses(open_close_blob, expected):
     tok = UTF8Tokenizer(open_close_blob)
-    results = tok.get_tokens_between_parentheses()
+    results = tok.get_tokens_between_parentheses(strict=False)
     assert sorted(results) == sorted(expected)
 
 
