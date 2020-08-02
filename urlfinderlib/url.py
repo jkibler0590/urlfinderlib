@@ -47,19 +47,19 @@ def decode_proofpoint_v2(url: str) -> str:
         return ''
 
 
-def get_ascii_url(url: str) -> str:
-    return url.encode('ascii', errors='ignore').decode()
-
-
-def get_every_url(urls: Set['URL'], ret=None) -> Set[str]:
+def get_all_parent_and_child_urls(urls: Set['URL'], ret=None) -> Set[str]:
     if ret is None:
         ret = set()
 
     for url in urls:
-        ret |= url.permutations
-        ret |= get_every_url(url.child_urls)
+        ret.add(url.original_url)
+        ret |= get_all_parent_and_child_urls(url.child_urls)
 
     return ret
+
+
+def get_ascii_url(url: str) -> str:
+    return url.encode('ascii', errors='ignore').decode()
 
 
 def get_netloc_idna(url: str) -> str:
@@ -237,6 +237,8 @@ class URL:
             'percent_decoded': get_path_percent_decoded(self.value),
             'percent_encoded': get_path_percent_encoded(self.value)
         }
+
+        self.original_url = build_url(self._split_value.scheme, self._netlocs['original'], self._paths['original'])
 
         self._is_barracuda = 'linkprotect.cudasvc.com/url' in self._value_lower
         self._is_google_redirect = 'google.com/url?' in self._value_lower

@@ -76,19 +76,17 @@ def test_equal_url():
     assert URL('http://domain.com') == URL('http://domain.com')
 
 
-def test_get_ascii_url():
-    assert get_ascii_url('http://d😉o😉m😉a😉i😉n😉.😉c😉o😉m') == 'http://domain.com'
-
-
-def test_get_every_url():
+def test_get_all_parent_and_child_urls():
     urls = {URL('https://www.domain.com/redirect?url=http%3A//domain2.com')}
     expected_urls = {
         'http://domain2.com',
-        'https://www.domain.com/redirect%3Furl%3Dhttp%3A//domain2.com',
-        'https://www.domain.com/redirect?url=http%3A//domain2.com',
-        'https://www.domain.com/redirect?url=http://domain2.com'
+        'https://www.domain.com/redirect?url=http%3A//domain2.com'
     }
-    assert get_every_url(urls) == expected_urls
+    assert get_all_parent_and_child_urls(urls) == expected_urls
+
+
+def test_get_ascii_url():
+    assert get_ascii_url('http://d😉o😉m😉a😉i😉n😉.😉c😉o😉m') == 'http://domain.com'
 
 
 def test_get_netloc_idna():
