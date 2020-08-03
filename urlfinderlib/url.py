@@ -47,9 +47,12 @@ def decode_proofpoint_v2(url: str) -> str:
         return ''
 
 
-def get_all_parent_and_child_urls(urls: Set['URL'], ret=None) -> Set[str]:
+def get_all_parent_and_child_urls(urls: Union[Set['URL'], 'URL'], ret=None) -> Set[str]:
     if ret is None:
         ret = set()
+
+    if isinstance(urls, URL):
+        urls = {urls}
 
     for url in urls:
         ret.add(url.original_url)
