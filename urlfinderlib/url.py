@@ -240,10 +240,7 @@ class URL:
 
         self.original_url = build_url(self._split_value.scheme, self._netlocs['original'], self._paths['original'])
 
-        self._is_barracuda = 'linkprotect.cudasvc.com/url' in self._value_lower
-        self._is_google_redirect = 'google.com/url?' in self._value_lower
         self._is_mandrillapp = 'mandrillapp.com' in self._value_lower and 'p' in self._query_dict
-        self._is_outlook_safelink = 'safelinks.protection.outlook.com' in self._value_lower
         self._is_proofpoint_v2 = 'urldefense.proofpoint.com/v2' in self._value_lower and 'u' in self._query_dict
 
         self.permutations = self.get_permutations()

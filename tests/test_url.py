@@ -231,7 +231,6 @@ def test_url_create():
 
 def test_url_decode_barracuda():
     url = URL('https://linkprotect.cudasvc.com/url?a=http://domain.com')
-    assert url._is_barracuda is True
     assert url.child_urls == {URL('http://domain.com')}
 
 
@@ -242,7 +241,6 @@ def test_url_decode_base64():
 
 def test_url_decode_google_redirect():
     url = URL('https://www.google.com/url?sa=t&source=web&rct=j&url=http://domain.com')
-    assert url._is_google_redirect is True
     assert url.child_urls == {URL('http://domain.com')}
 
 
@@ -263,7 +261,6 @@ def test_url_decode_mandrillapp():
 
 def test_url_decode_outlook_safelink():
     url = URL('https://na01.safelinks.protection.outlook.com/?url=http%3A%2F%2Fdomain.com')
-    assert url._is_outlook_safelink is True
     assert {URL('http://domain.com')} == url.child_urls
 
 
