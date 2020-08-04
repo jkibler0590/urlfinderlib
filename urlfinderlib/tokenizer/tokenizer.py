@@ -12,7 +12,7 @@ class UTF8Tokenizer:
         self.blob = blob
         self.utf8_string = self.blob.decode('utf-8', errors='ignore')
 
-    def get_all_tokens(self, strict: bool = False) -> Iterator[str]:
+    def get_all_tokens(self, strict: bool = True) -> Iterator[str]:
         return chain(
             self.get_line_tokens(),
             self.get_tokens_between_angle_brackets(strict=strict),
@@ -39,30 +39,30 @@ class UTF8Tokenizer:
         pattern = b'[\x20-\x7E]{%b,}' % str(length).encode('ascii', errors='ignore')
         return (x.group(0).decode('ascii') for x in re.finditer(pattern, self.blob))
 
-    def get_tokens_between_angle_brackets(self, strict: bool = False) -> Iterator[str]:
+    def get_tokens_between_angle_brackets(self, strict: bool = True) -> Iterator[str]:
         return self.get_tokens_between_open_and_close_sequence('<', '>', strict=strict)
 
     def get_tokens_between_backticks(self) -> Iterator[str]:
         return self.get_tokens_between_sequence('`')
 
-    def get_tokens_between_brackets(self, strict: bool = False) -> Iterator[str]:
+    def get_tokens_between_brackets(self, strict: bool = True) -> Iterator[str]:
         return self.get_tokens_between_open_and_close_sequence('[', ']', strict=strict)
 
-    def get_tokens_between_curly_brackets(self, strict: bool = False) -> Iterator[str]:
+    def get_tokens_between_curly_brackets(self, strict: bool = True) -> Iterator[str]:
         return self.get_tokens_between_open_and_close_sequence('{', '}', strict=strict)
 
     def get_tokens_between_double_quotes(self) -> Iterator[str]:
         return self.get_tokens_between_sequence('"')
 
     def get_tokens_between_open_and_close_sequence(self, open_sequence: str, close_sequence: str,
-                                                   strict: bool = False) -> Iterator[str]:
+                                                   strict: bool = True) -> Iterator[str]:
         open_indices = self._get_indices_of_sequence(open_sequence)
         closed_indices = self._get_indices_of_sequence(close_sequence)
 
         all_tokens = (self.utf8_string[o + 1:c] for o in open_indices for c in closed_indices if o < c)
-        return (t for t in all_tokens if open_sequence not in t and close_sequence not in t) if strict else all_tokens
+        return (t for t in all_tokens if close_sequence not in t) if strict else all_tokens
 
-    def get_tokens_between_parentheses(self, strict: bool = False) -> Iterator[str]:
+    def get_tokens_between_parentheses(self, strict: bool = True) -> Iterator[str]:
         return self.get_tokens_between_open_and_close_sequence('(', ')', strict=strict)
 
     def get_tokens_between_sequence(self, sequence: str) -> Iterator[str]:

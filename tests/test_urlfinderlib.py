@@ -30,7 +30,6 @@ def test_find_urls_html():
         'http://domain.com/xmlns',
         'http://domain3.com',
         'http://faß.de/re.php',
-        'http://xn--fa-hia.de/re.php',
         'http://domain2.com/image-small.png',
         'http://domain2.com/image-medium.png',
         'http://domain2.com/image-large.png'
@@ -39,15 +38,19 @@ def test_find_urls_html():
     assert urlfinderlib.find_urls(blob) == expected_urls
 
 
+def test_find_urls_ooxml():
+    with open(f'{files_dir}/test.ooxml', 'rb') as f:
+        blob = f.read()
+
+    assert urlfinderlib.find_urls(blob) == set()
+
+
 def test_find_urls_pdf():
-    with open(f'{files_dir}/pdf.pdfparser', 'rb') as f:
+    with open(f'{files_dir}/test.pdfparser', 'rb') as f:
         blob = f.read()
 
     expected_urls = {
-        'http://domain.com/(test)/123%3C',
-        'http://domain.com/(test)/123<',
-        'http://domain.com/(test)/123&lt;',
-        'http://domain.com/%28test%29/123%3C'
+        'http://domain.com/(test/123'
     }
 
     assert urlfinderlib.find_urls(blob) == expected_urls
@@ -89,3 +92,18 @@ def test_find_urls_xml():
     }
 
     assert urlfinderlib.find_urls(blob) == expected_urls
+
+
+def test_get_url_permutations():
+    url = 'http://faß.de/index.php?test<123/😉'
+
+    expected_permutations = {
+        'http://faß.de/index.php%3Ftest%3C123/%F0%9F%98%89',
+        'http://faß.de/index.php?test&lt;123/😉',
+        'http://faß.de/index.php?test<123/😉',
+        'http://xn--fa-hia.de/index.php%3Ftest%3C123/%F0%9F%98%89',
+        'http://xn--fa-hia.de/index.php?test&lt;123/😉',
+        'http://xn--fa-hia.de/index.php?test<123/😉'
+    }
+
+    assert urlfinderlib.get_url_permutations(url) == expected_permutations

@@ -5,7 +5,11 @@ from typing import Set, Union
 import urlfinderlib.finders as finders
 
 from urlfinderlib import URL
-from urlfinderlib.url import get_every_url, remove_partial_urls
+from urlfinderlib.url import get_all_parent_and_child_urls, remove_partial_urls
+
+
+def get_url_permutations(url: str) -> Set[str]:
+    return URL(url).permutations
 
 
 def find_urls(blob: Union[bytes, str], base_url: str = '', mimetype: str = '') -> Set[str]:
@@ -23,15 +27,18 @@ def find_urls(blob: Union[bytes, str], base_url: str = '', mimetype: str = '') -
     elif 'html' in mimetype:
         urls |= finders.HtmlUrlFinder(blob, base_url=base_url).find_urls()
     elif 'xml' in mimetype:
-        urls |= finders.XmlUrlFinder(blob).find_urls()
+        try:
+            urls |= finders.XmlUrlFinder(blob).find_urls()
+        except AttributeError:
+            urls |= finders.TextUrlFinder(blob).find_urls(strict=True)
     elif 'text' in mimetype:
         if b'xmlns' in blob and b'</' in blob:
             urls |= finders.HtmlUrlFinder(blob, base_url=base_url).find_urls()
         else:
-            urls |= finders.TextUrlFinder(blob).find_urls()
+            urls |= finders.TextUrlFinder(blob).find_urls(strict=True)
     else:
         urls |= finders.DataUrlFinder(blob).find_urls()
 
     urls = {URL(u) for u in urls}
 
-    return remove_partial_urls(get_every_url(urls))
+    return remove_partial_urls(get_all_parent_and_child_urls(urls))

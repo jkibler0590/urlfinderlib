@@ -76,19 +76,17 @@ def test_equal_url():
     assert URL('http://domain.com') == URL('http://domain.com')
 
 
-def test_get_ascii_url():
-    assert get_ascii_url('http://d😉o😉m😉a😉i😉n😉.😉c😉o😉m') == 'http://domain.com'
-
-
-def test_get_every_url():
+def test_get_all_parent_and_child_urls():
     urls = {URL('https://www.domain.com/redirect?url=http%3A//domain2.com')}
     expected_urls = {
         'http://domain2.com',
-        'https://www.domain.com/redirect%3Furl%3Dhttp%3A//domain2.com',
-        'https://www.domain.com/redirect?url=http%3A//domain2.com',
-        'https://www.domain.com/redirect?url=http://domain2.com'
+        'https://www.domain.com/redirect?url=http%3A//domain2.com'
     }
-    assert get_every_url(urls) == expected_urls
+    assert get_all_parent_and_child_urls(urls) == expected_urls
+
+
+def test_get_ascii_url():
+    assert get_ascii_url('http://d😉o😉m😉a😉i😉n😉.😉c😉o😉m') == 'http://domain.com'
 
 
 def test_get_netloc_idna():
@@ -233,7 +231,6 @@ def test_url_create():
 
 def test_url_decode_barracuda():
     url = URL('https://linkprotect.cudasvc.com/url?a=http://domain.com')
-    assert url._is_barracuda is True
     assert url.child_urls == {URL('http://domain.com')}
 
 
@@ -242,9 +239,21 @@ def test_url_decode_base64():
     assert url.child_urls == {URL('http://domain2.com')}
 
 
+def test_url_decode_double_nested():
+    url = URL('https://protect2.fireeye.com/url?k=225eb64e-7e024241-225e9cd6-0cc47a33347c-67785364a067dbfc&u=https://mandrillapp.com/track/click/30233568/domain.com?p=eyJzIjoiQnU1NFZhQV9RUTJyTnA0OGxZVllHdFZIdVVzIiwidiI6MSwicCI6IntcInVcIjozMDIzMzU2OCxcInZcIjoxLFwidXJsXCI6XCJodHRwOlxcXC9cXFwvZG9tYWluLmNvbVxcXC90ZXN0XCIsXCJpZFwiOlwiMjIyMjk4YmUyNGU0NDE4MzhlMDFmZjcxN2ZlNzE5YjFcIixcInVybF9pZHNcIjpbXCI5ODdjODQ1Y2ZmZGRmYTU4MjYxN2Y5NDFjZmNmNTE4NmU0MGZlNjY5XCJdfSJ9Cg==')
+
+    assert get_all_parent_and_child_urls(url) == {
+        'https://protect2.fireeye.com/url?k=225eb64e-7e024241-225e9cd6-0cc47a33347c-67785364a067dbfc&u=https://mandrillapp.com/track/click/30233568/domain.com?p=eyJzIjoiQnU1NFZhQV9RUTJyTnA0OGxZVllHdFZIdVVzIiwidiI6MSwicCI6IntcInVcIjozMDIzMzU2OCxcInZcIjoxLFwidXJsXCI6XCJodHRwOlxcXC9cXFwvZG9tYWluLmNvbVxcXC90ZXN0XCIsXCJpZFwiOlwiMjIyMjk4YmUyNGU0NDE4MzhlMDFmZjcxN2ZlNzE5YjFcIixcInVybF9pZHNcIjpbXCI5ODdjODQ1Y2ZmZGRmYTU4MjYxN2Y5NDFjZmNmNTE4NmU0MGZlNjY5XCJdfSJ9Cg==',
+        'https://mandrillapp.com/track/click/30233568/domain.com?p=eyJzIjoiQnU1NFZhQV9RUTJyTnA0OGxZVllHdFZIdVVzIiwidiI6MSwicCI6IntcInVcIjozMDIzMzU2OCxcInZcIjoxLFwidXJsXCI6XCJodHRwOlxcXC9cXFwvZG9tYWluLmNvbVxcXC90ZXN0XCIsXCJpZFwiOlwiMjIyMjk4YmUyNGU0NDE4MzhlMDFmZjcxN2ZlNzE5YjFcIixcInVybF9pZHNcIjpbXCI5ODdjODQ1Y2ZmZGRmYTU4MjYxN2Y5NDFjZmNmNTE4NmU0MGZlNjY5XCJdfSJ9Cg==',
+        'http://domain.com/test'
+    }
+
+    assert url.child_urls == {URL('https://mandrillapp.com/track/click/30233568/domain.com?p=eyJzIjoiQnU1NFZhQV9RUTJyTnA0OGxZVllHdFZIdVVzIiwidiI6MSwicCI6IntcInVcIjozMDIzMzU2OCxcInZcIjoxLFwidXJsXCI6XCJodHRwOlxcXC9cXFwvZG9tYWluLmNvbVxcXC90ZXN0XCIsXCJpZFwiOlwiMjIyMjk4YmUyNGU0NDE4MzhlMDFmZjcxN2ZlNzE5YjFcIixcInVybF9pZHNcIjpbXCI5ODdjODQ1Y2ZmZGRmYTU4MjYxN2Y5NDFjZmNmNTE4NmU0MGZlNjY5XCJdfSJ9Cg=='),}
+    assert url.child_urls.pop().child_urls == {URL('http://domain.com/test')}
+
+
 def test_url_decode_google_redirect():
     url = URL('https://www.google.com/url?sa=t&source=web&rct=j&url=http://domain.com')
-    assert url._is_google_redirect is True
     assert url.child_urls == {URL('http://domain.com')}
 
 
@@ -265,7 +274,6 @@ def test_url_decode_mandrillapp():
 
 def test_url_decode_outlook_safelink():
     url = URL('https://na01.safelinks.protection.outlook.com/?url=http%3A%2F%2Fdomain.com')
-    assert url._is_outlook_safelink is True
     assert {URL('http://domain.com')} == url.child_urls
 
 

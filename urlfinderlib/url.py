@@ -47,19 +47,22 @@ def decode_proofpoint_v2(url: str) -> str:
         return ''
 
 
-def get_ascii_url(url: str) -> str:
-    return url.encode('ascii', errors='ignore').decode()
-
-
-def get_every_url(urls: Set['URL'], ret=None) -> Set[str]:
+def get_all_parent_and_child_urls(urls: Union[Set['URL'], 'URL'], ret=None) -> Set[str]:
     if ret is None:
         ret = set()
 
+    if isinstance(urls, URL):
+        urls = {urls}
+
     for url in urls:
-        ret |= url.permutations
-        ret |= get_every_url(url.child_urls)
+        ret.add(url.original_url)
+        ret |= get_all_parent_and_child_urls(url.child_urls)
 
     return ret
+
+
+def get_ascii_url(url: str) -> str:
+    return url.encode('ascii', errors='ignore').decode()
 
 
 def get_netloc_idna(url: str) -> str:
@@ -238,10 +241,9 @@ class URL:
             'percent_encoded': get_path_percent_encoded(self.value)
         }
 
-        self._is_barracuda = 'linkprotect.cudasvc.com/url' in self._value_lower
-        self._is_google_redirect = 'google.com/url?' in self._value_lower
+        self.original_url = build_url(self._split_value.scheme, self._netlocs['original'], self._paths['original'])
+
         self._is_mandrillapp = 'mandrillapp.com' in self._value_lower and 'p' in self._query_dict
-        self._is_outlook_safelink = 'safelinks.protection.outlook.com' in self._value_lower
         self._is_proofpoint_v2 = 'urldefense.proofpoint.com/v2' in self._value_lower and 'u' in self._query_dict
 
         self.permutations = self.get_permutations()
