@@ -14,7 +14,6 @@ class UTF8Tokenizer:
 
     def get_all_tokens(self, strict: bool = True) -> Iterator[str]:
         return chain(
-            self.get_line_tokens(),
             self.get_tokens_between_angle_brackets(strict=strict),
             self.get_tokens_between_backticks(),
             self.get_tokens_between_brackets(strict=strict),
