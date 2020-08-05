@@ -19,11 +19,7 @@ def build_url(scheme: str, netloc: str, path: str) -> str:
 
 def decode_mandrillapp(url: str) -> str:
     query_dict = get_query_dict(url)
-
-    try:
-        decoded = base64.b64decode(query_dict['p'][0])
-    except binascii.Error:
-        return ''
+    decoded = base64.b64decode(f"{query_dict['p'][0]}===")
 
     try:
         outer_json = json.loads(decoded)
@@ -292,7 +288,9 @@ class URL:
         child_urls |= self.get_base64_urls()
 
         if self._is_mandrillapp:
-            child_urls.add(decode_mandrillapp(self.value))
+            decoded_url = decode_mandrillapp(self.value)
+            if decoded_url:
+                child_urls.add(decoded_url)
 
         if self._is_proofpoint_v2:
             child_urls.add(decode_proofpoint_v2(self.value))

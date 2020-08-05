@@ -262,9 +262,6 @@ def test_url_decode_mandrillapp():
     assert url._is_mandrillapp is True
     assert url.child_urls == {URL('http://domain.com/test')}
 
-    binascii_error_url = 'https://mandrillapp.com/track/click/30233568/domain.com?p=eyJzas123df'
-    assert decode_mandrillapp(binascii_error_url) == ''
-
     json_decode_error_url = 'https://mandrillapp.com/track/click/30233568/domain.com?p=eyJzIjoiQnU1NFZhQV9RUTJyTnA0OGxZVllHdFZIdVVzIiwidiI6MSwicCI6IntcInVcIjozMDIzMzU2OCxcInZcIjoxLFwidXJsXCI6XCJodHRwOlxcXC9cXFwvZG9tYWluLmNvbVxcXC90ZXN0XCIsXCJpZFwiOlwiMjIyMjk4YmUyNGU0NDE4MzhlMDFmZjcxN2ZlNzE5YjFcIixcInVybF9pZHNcIjpbXCI5ODdjODQ1Y2ZmZGRmYTU4MjYxN2Y5NDFjZmNmNTE4NmU0MGZlNjY5XCJdCg=='
     assert decode_mandrillapp(json_decode_error_url) == ''
 
