@@ -51,3 +51,9 @@ def test_url_in_query_value():
     text = u'<html><body><a href="https://www.domain.com/redirect?url=http://√.com"></a></body></html>'
     finder = urlfinderlib.finders.TextUrlFinder(text.encode('utf-8'))
     assert finder.find_urls() == {'https://www.domain.com/redirect?url=http://√.com'}
+
+
+def test_url_next_to_url():
+    text = 'This is a test click here domain.com/test<https://protect2.fireeye.com/url?u=http://domain.com/test> test.'
+    finder = urlfinderlib.finders.TextUrlFinder(text)
+    assert finder.find_urls() == {'http://domain.com/test', 'https://protect2.fireeye.com/url?u=http://domain.com/test'}

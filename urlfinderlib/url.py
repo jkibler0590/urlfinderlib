@@ -19,11 +19,7 @@ def build_url(scheme: str, netloc: str, path: str) -> str:
 
 def decode_mandrillapp(url: str) -> str:
     query_dict = get_query_dict(url)
-
-    try:
-        decoded = base64.b64decode(query_dict['p'][0])
-    except binascii.Error:
-        return ''
+    decoded = base64.b64decode(f"{query_dict['p'][0]}===")
 
     try:
         outer_json = json.loads(decoded)
@@ -47,9 +43,12 @@ def decode_proofpoint_v2(url: str) -> str:
         return ''
 
 
-def get_all_parent_and_child_urls(urls: Set['URL'], ret=None) -> Set[str]:
+def get_all_parent_and_child_urls(urls: Union[Set['URL'], 'URL'], ret=None) -> Set[str]:
     if ret is None:
         ret = set()
+
+    if isinstance(urls, URL):
+        urls = {urls}
 
     for url in urls:
         ret.add(url.original_url)
@@ -240,10 +239,7 @@ class URL:
 
         self.original_url = build_url(self._split_value.scheme, self._netlocs['original'], self._paths['original'])
 
-        self._is_barracuda = 'linkprotect.cudasvc.com/url' in self._value_lower
-        self._is_google_redirect = 'google.com/url?' in self._value_lower
         self._is_mandrillapp = 'mandrillapp.com' in self._value_lower and 'p' in self._query_dict
-        self._is_outlook_safelink = 'safelinks.protection.outlook.com' in self._value_lower
         self._is_proofpoint_v2 = 'urldefense.proofpoint.com/v2' in self._value_lower and 'u' in self._query_dict
 
         self.permutations = self.get_permutations()
@@ -292,7 +288,9 @@ class URL:
         child_urls |= self.get_base64_urls()
 
         if self._is_mandrillapp:
-            child_urls.add(decode_mandrillapp(self.value))
+            decoded_url = decode_mandrillapp(self.value)
+            if decoded_url:
+                child_urls.add(decoded_url)
 
         if self._is_proofpoint_v2:
             child_urls.add(decode_proofpoint_v2(self.value))
