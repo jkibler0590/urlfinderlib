@@ -115,6 +115,7 @@ def test_get_path_html_encoded():
 
 def test_get_path_original():
     assert get_path_original('http://domain.com/?index%3D1&lt;2') == '/?index%3D1&lt;2'
+    assert get_path_original('http://dom[ain.com/test') == ''
 
 
 def test_get_path_percent_decoded():
@@ -133,6 +134,7 @@ def test_get_query_dict():
 def test_get_scheme():
     assert get_scheme('https://domain.com') == 'https'
     assert get_scheme('HTTPS://domain.com') == 'https'
+    assert get_scheme('http://dom[ain.com') == ''
 
 
 def test_get_valid_urls():

@@ -29,7 +29,8 @@ class XmlUrlFinder:
         values = set()
 
         for element in self._root.iter():
-            values |= {v for v in set(element.attrib.values())}
+            values.add(element.tag)
+            values |= {item for sublist in element.items() for item in sublist}
 
         return values
 

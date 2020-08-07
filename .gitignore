@@ -5,6 +5,9 @@ files.txt
 .idea
 .vscode
 
+# Mac things
+*.DS_Store
+
 # Byte-compiled / optimized / DLL files
 *__pycache__*
 *.py[cod]

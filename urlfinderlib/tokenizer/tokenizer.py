@@ -12,18 +12,6 @@ class UTF8Tokenizer:
         self.blob = blob
         self.utf8_string = self.blob.decode('utf-8', errors='ignore')
 
-    def get_all_tokens(self, strict: bool = True) -> Iterator[str]:
-        return chain(
-            self.get_tokens_between_angle_brackets(strict=strict),
-            self.get_tokens_between_backticks(),
-            self.get_tokens_between_brackets(strict=strict),
-            self.get_tokens_between_curly_brackets(strict=strict),
-            self.get_tokens_between_double_quotes(),
-            self.get_tokens_between_parentheses(strict=strict),
-            self.get_tokens_between_single_quotes(),
-            self.get_split_tokens_after_replace(['<', '>', '`', '[', ']', '{', '}', '"', "'", '(', ')'])
-        )
-
     def get_line_tokens(self) -> Iterator[str]:
         return (x.group(0) for x in re.finditer(r'[^\n\r]+', self.utf8_string))
 
@@ -58,7 +46,15 @@ class UTF8Tokenizer:
         open_indices = self._get_indices_of_sequence(open_sequence)
         closed_indices = self._get_indices_of_sequence(close_sequence)
 
-        all_tokens = (self.utf8_string[o + 1:c] for o in open_indices for c in closed_indices if o < c)
+        index_pairs = []
+        for o in open_indices:
+            for c in closed_indices:
+                if o < c:
+                    index_pairs.append((o, c))
+                    if strict:
+                        break
+
+        all_tokens = (self.utf8_string[o+1:c] for o, c in index_pairs)
         return (t for t in all_tokens if close_sequence not in t) if strict else all_tokens
 
     def get_tokens_between_parentheses(self, strict: bool = True) -> Iterator[str]:
