@@ -200,7 +200,12 @@ def is_valid_format(url: str) -> bool:
     elif isinstance(url, bytes):
         url = url.decode('utf-8', errors='ignore')
 
-    encoded_url = build_url(get_scheme(url), get_netloc_idna(url), get_path_percent_encoded(url))
+    netloc = get_netloc_idna(url)
+
+    if not re.match(r'^[a-zA-Z0-9\-\.\:\@]{1,255}$', netloc):
+        return False
+
+    encoded_url = build_url(get_scheme(url), netloc, get_path_percent_encoded(url))
     return bool(validators.url(encoded_url))
 
 

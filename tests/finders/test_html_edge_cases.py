@@ -142,7 +142,7 @@ def test_null_characters():
 
 
 def test_two_urls_in_anchor_tag():
-    html = b'<html><body><a href="http://domain.com">domain2.com</a></body></html>'
+    html = b'<html><body><a href="http://domain.com">http://domain2.com</a></body></html>'
     finder = urlfinderlib.finders.HtmlUrlFinder(html)
     assert finder.find_urls() == {'http://domain.com', 'http://domain2.com'}
 

@@ -88,7 +88,8 @@ def test_find_urls_xml():
     expected_urls = {
         'http://schemas.openxmlformats.org/spreadsheetml/2006/main',
         'http://domain.com/test',
-        'http://domain2.com'
+        'http://domain2.com',
+        'http://www.w3.org/XML/1998/namespace'
     }
 
     assert urlfinderlib.find_urls(blob) == expected_urls
