@@ -1,6 +1,5 @@
 import re
 
-from itertools import chain
 from typing import Iterator, List, Union
 
 
@@ -47,15 +46,21 @@ class UTF8Tokenizer:
         closed_indices = self._get_indices_of_sequence(close_sequence)
 
         index_pairs = []
-        for o in open_indices:
-            for c in closed_indices:
-                if o < c:
-                    index_pairs.append((o, c))
+        for open_index, open_value in enumerate(open_indices):
+            for closed_value in closed_indices[:]:
+                if open_value < closed_value:
+                    index_pairs.append((open_value, closed_value))
+
+                    try:
+                        if closed_value < open_indices[open_index + 1]:
+                            closed_indices.remove(closed_value)
+                    except IndexError:
+                        pass
+
                     if strict:
                         break
 
-        all_tokens = (self.utf8_string[o+1:c] for o, c in index_pairs)
-        return (t for t in all_tokens if close_sequence not in t) if strict else all_tokens
+        return (self.utf8_string[o+1:c] for o, c in index_pairs)
 
     def get_tokens_between_parentheses(self, strict: bool = True) -> Iterator[str]:
         return self.get_tokens_between_open_and_close_sequence('(', ')', strict=strict)
