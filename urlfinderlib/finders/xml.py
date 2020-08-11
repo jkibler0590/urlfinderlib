@@ -12,7 +12,7 @@ class XmlUrlFinder:
         try:
             self._root = cElementTree.fromstring(string)
         except cElementTree.ParseError:
-            self._root = cElementTree.ElementTree()
+            self._root = cElementTree.fromstring('<?xml version="1.0" encoding="UTF-8"?><empty></empty>')
 
     def find_urls(self) -> Set[str]:
         possible_urls = {str(self._root)}

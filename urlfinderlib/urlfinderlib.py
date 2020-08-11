@@ -30,10 +30,7 @@ def find_urls(blob: Union[bytes, str], base_url: str = '', mimetype: str = '') -
     elif 'html' in mimetype:
         urls |= finders.HtmlUrlFinder(blob, base_url=base_url).find_urls()
     elif 'xml' in mimetype:
-        try:
-            urls |= finders.XmlUrlFinder(blob).find_urls()
-        except AttributeError:
-            urls |= finders.TextUrlFinder(blob).find_urls(strict=True)
+        urls |= finders.XmlUrlFinder(blob).find_urls()
     elif b'%PDF-' in blob[:1024]:
         urls |= finders.PdfUrlFinder(blob).find_urls()
     elif 'text' in mimetype:
