@@ -32,7 +32,9 @@ def test_find_urls_html():
         'http://faß.de/re.php',
         'http://domain2.com/image-small.png',
         'http://domain2.com/image-medium.png',
-        'http://domain2.com/image-large.png'
+        'http://domain2.com/image-large.png',
+        'http://domain4.com/index.php#thing=http://domain5.com',
+        'http://domain5.com'
     }
 
     assert urlfinderlib.find_urls(blob) == expected_urls

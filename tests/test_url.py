@@ -89,6 +89,11 @@ def test_get_ascii_url():
     assert get_ascii_url('http://d😉o😉m😉a😉i😉n😉.😉c😉o😉m') == 'http://domain.com'
 
 
+def test_get_fragment_dict():
+    url = URL('http://domain.com/index.php#one=1&two=2&three=3')
+    assert url._fragment_dict == {'one': ['1'], 'two': ['2'], 'three': ['3']}
+
+
 def test_get_netloc_idna():
     assert get_netloc_idna('http://faß.de') == 'xn--fa-hia.de'
     assert get_netloc_idna('http://DOMAIN.COM') == 'domain.com'
@@ -283,6 +288,11 @@ def test_url_decode_proofpoint_v2():
 
     keyerror_url = 'https://urldefense.proofpoint.com/v2/url'
     assert decode_proofpoint_v2(keyerror_url) == ''
+
+
+def test_url_get_fragment_values():
+    url = URL('https://domain.com/index.php#a=1&b=2&c=3')
+    assert url.get_fragment_values() == {'1', '2', '3'}
 
 
 def test_url_get_query_values():
