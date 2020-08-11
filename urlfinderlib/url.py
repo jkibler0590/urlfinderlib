@@ -94,7 +94,7 @@ def get_netloc_unicode(url: str) -> str:
 
     try:
         return idna.decode(split_url.netloc).lower()
-    except idna.core.InvalidCodepoint:
+    except idna.core.IDNAError:
         return split_url.netloc.encode('utf-8', errors='ignore').decode('idna').lower()
 
 
