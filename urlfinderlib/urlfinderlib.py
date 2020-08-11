@@ -1,4 +1,5 @@
 import magic
+import string
 
 from typing import Set, Union
 
@@ -16,6 +17,8 @@ def find_urls(blob: Union[bytes, str], base_url: str = '', mimetype: str = '') -
     if isinstance(blob, str):
         blob = blob.encode('utf-8', errors='ignore')
 
+    blob = unescape_ascii(blob)
+
     if not mimetype:
         mimetype = magic.from_buffer(blob)
     mimetype = mimetype.lower()
@@ -27,10 +30,7 @@ def find_urls(blob: Union[bytes, str], base_url: str = '', mimetype: str = '') -
     elif 'html' in mimetype:
         urls |= finders.HtmlUrlFinder(blob, base_url=base_url).find_urls()
     elif 'xml' in mimetype:
-        try:
-            urls |= finders.XmlUrlFinder(blob).find_urls()
-        except AttributeError:
-            urls |= finders.TextUrlFinder(blob).find_urls(strict=True)
+        urls |= finders.XmlUrlFinder(blob).find_urls()
     elif b'%PDF-' in blob[:1024]:
         urls |= finders.PdfUrlFinder(blob).find_urls()
     elif 'text' in mimetype:
@@ -44,3 +44,16 @@ def find_urls(blob: Union[bytes, str], base_url: str = '', mimetype: str = '') -
     urls = {URL(u) for u in urls}
 
     return remove_partial_urls(get_all_parent_and_child_urls(urls))
+
+
+def unescape_ascii(blob: bytes) -> bytes:
+    ascii_chars = string.ascii_letters + string.digits + string.punctuation
+
+    for char in ascii_chars:
+        hex_string_lowercase = f'\\x{format(ord(char), "x")}'.encode('utf-8')
+        blob = blob.replace(hex_string_lowercase, hex_string_lowercase.decode('unicode_escape').encode('utf-8'))
+
+        hex_string_uppercase = f'\\x{format(ord(char), "X")}'.encode('utf-8')
+        blob = blob.replace(hex_string_uppercase, hex_string_uppercase.decode('unicode_escape').encode('utf-8'))
+
+    return blob

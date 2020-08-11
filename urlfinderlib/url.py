@@ -61,6 +61,10 @@ def get_ascii_url(url: str) -> str:
     return url.encode('ascii', errors='ignore').decode()
 
 
+def get_fragment_dict(url) -> dict:
+    return parse_qs(urlparse(url).fragment)
+
+
 def get_netloc_idna(url: str) -> str:
     try:
         split_url = urlsplit(url)
@@ -90,7 +94,7 @@ def get_netloc_unicode(url: str) -> str:
 
     try:
         return idna.decode(split_url.netloc).lower()
-    except idna.core.InvalidCodepoint:
+    except idna.core.IDNAError:
         return split_url.netloc.encode('utf-8', errors='ignore').decode('idna').lower()
 
 
@@ -226,6 +230,7 @@ class URL:
         self._value_lower = self.value.lower()
         self._split_value = urlsplit(self.value)
         self._query_dict = get_query_dict(self.value)
+        self._fragment_dict = get_fragment_dict(self.value)
 
         self._netlocs = {
             'idna': get_netloc_idna(self.value),
@@ -290,6 +295,7 @@ class URL:
 
     def get_child_urls(self) -> Set['URL']:
         child_urls = self.get_query_urls()
+        child_urls |= self.get_fragment_urls()
         child_urls |= self.get_base64_urls()
 
         if self._is_mandrillapp:
@@ -301,6 +307,18 @@ class URL:
             child_urls.add(decode_proofpoint_v2(self.value))
 
         return {URL(u) for u in child_urls}
+
+    def get_fragment_urls(self) -> Set[str]:
+        return {v for v in self.get_fragment_values() if is_url(v)}
+
+    def get_fragment_values(self) -> Set[str]:
+        values = set()
+
+        for url in self.get_permutations():
+            fragment_dict = get_fragment_dict(url)
+            values |= {item for sublist in fragment_dict.values() for item in sublist}
+
+        return values
 
     def get_permutations(self) -> Set[str]:
         return {
