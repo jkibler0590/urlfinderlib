@@ -20,6 +20,7 @@ class PdfUrlFinder:
         tok = tokenizer.UTF8Tokenizer(self.blob)
 
         token_iter = chain(
+            tok.get_tokens_between_angle_brackets(strict=True),
             tok.get_tokens_between_open_and_close_sequence('/URI', '>>', strict=True),
             tok.get_tokens_between_parentheses(strict=True)
         )
