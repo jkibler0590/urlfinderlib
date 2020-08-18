@@ -1,6 +1,9 @@
 from urlfinderlib.url import *
 
 valid_urls = [
+    'http://localhost:8080/index.php',
+    'http://127.0.0.1/index.html',
+    'http://localhost.localdomain',
     'http://1.1.1.255',
     'http://1.1.1.0',
     'http://1.1.1.1:8080',
@@ -154,7 +157,8 @@ def test_get_valid_urls():
 def test_is_netloc_ipv4():
     valid_ipv4_netloc = [
         'http://1.1.1.1',
-        'http://1.1.1.1:8080'
+        'http://1.1.1.1:8080',
+        'http://user:password@1.1.1.1:8080'
     ]
 
     invalid_ipv4_netloc = [
@@ -168,6 +172,25 @@ def test_is_netloc_ipv4():
 
     for url in invalid_ipv4_netloc:
         assert is_netloc_ipv4(url) is False
+
+
+def test_is_netloc_localhost():
+    valid_localhost_netloc = [
+        'http://localhost',
+        'http://localhost:8080/index.html',
+        'http://user:password@localhost.localdomain:8080/index.html'
+    ]
+
+    invalid_localhost_netloc = [
+        'http://domain.com',
+        'http://local[host'
+    ]
+
+    for url in valid_localhost_netloc:
+        assert is_netloc_localhost(url) is True
+
+    for url in invalid_localhost_netloc:
+        assert is_netloc_localhost(url) is False
 
 
 def test_is_netloc_valid_tld():

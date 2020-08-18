@@ -56,4 +56,10 @@ def unescape_ascii(blob: bytes) -> bytes:
         hex_string_uppercase = f'\\x{format(ord(char), "X")}'.encode('utf-8')
         blob = blob.replace(hex_string_uppercase, hex_string_uppercase.decode('unicode_escape').encode('utf-8'))
 
+        unicode_string_lowercase = f'\\u00{format(ord(char), "x")}'.encode('utf-8')
+        blob = blob.replace(unicode_string_lowercase, unicode_string_lowercase.decode('unicode_escape').encode('utf-8'))
+
+        unicode_string_uppercase = f'\\u00{format(ord(char), "X")}'.encode('utf-8')
+        blob = blob.replace(unicode_string_uppercase, unicode_string_uppercase.decode('unicode_escape').encode('utf-8'))
+
     return blob
