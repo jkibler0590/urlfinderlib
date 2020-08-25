@@ -3,10 +3,7 @@ from typing import Set, Union
 
 import urlfinderlib.tokenizer as tokenizer
 
-from .data import DataUrlFinder
 from .text import TextUrlFinder
-
-from urlfinderlib.url import get_valid_urls
 
 
 class PdfUrlFinder:
@@ -20,11 +17,36 @@ class PdfUrlFinder:
         tok = tokenizer.UTF8Tokenizer(self.blob)
 
         token_iter = chain(
-            tok.get_tokens_between_angle_brackets(strict=True),
             tok.get_tokens_between_open_and_close_sequence('/URI', '>>', strict=True),
-            tok.get_tokens_between_parentheses(strict=True)
+
+            tok.get_tokens_between_open_and_close_sequence('(http', ')', strict=True),
+            tok.get_tokens_between_open_and_close_sequence('(ftp', ')', strict=True),
+
+            tok.get_tokens_between_open_and_close_sequence('<http', '>', strict=True),
+            tok.get_tokens_between_open_and_close_sequence('<ftp', '>', strict=True),
+
+            tok.get_tokens_between_open_and_close_sequence('"http', '"', strict=True),
+            tok.get_tokens_between_open_and_close_sequence('"ftp', '"', strict=True),
+
+            tok.get_tokens_between_open_and_close_sequence("'http", "'", strict=True),
+            tok.get_tokens_between_open_and_close_sequence("'ftp", "'", strict=True),
+
+            tok.get_tokens_between_open_and_close_sequence('(HTTP', ')', strict=True),
+            tok.get_tokens_between_open_and_close_sequence('(FTP', ')', strict=True),
+
+            tok.get_tokens_between_open_and_close_sequence('<HTTP', '>', strict=True),
+            tok.get_tokens_between_open_and_close_sequence('<FTP', '>', strict=True),
+
+            tok.get_tokens_between_open_and_close_sequence('"HTTP', '"', strict=True),
+            tok.get_tokens_between_open_and_close_sequence('"FTP', '"', strict=True),
+
+            tok.get_tokens_between_open_and_close_sequence("'HTTP", "'", strict=True),
+            tok.get_tokens_between_open_and_close_sequence("'FTP", "'", strict=True)
         )
 
-        tokens = {t.replace('\\', '') for t in token_iter if (':' in t or '/' in t) and '.' in t}
+        urls = set()
+        for token in token_iter:
+            token = token.replace('\\', '')
+            urls |= TextUrlFinder(token).find_urls()
 
-        return get_valid_urls(tokens)
+        return urls
