@@ -1,4 +1,5 @@
 import magic
+import re
 import string
 
 from typing import Set, Union
@@ -17,7 +18,7 @@ def find_urls(blob: Union[bytes, str], base_url: str = '', mimetype: str = '') -
     if isinstance(blob, str):
         blob = blob.encode('utf-8', errors='ignore')
 
-    blob = unescape_ascii(blob)
+    blob = _unescape_ascii(blob)
 
     if not mimetype:
         mimetype = magic.from_buffer(blob)
@@ -46,20 +47,43 @@ def find_urls(blob: Union[bytes, str], base_url: str = '', mimetype: str = '') -
     return remove_partial_urls(get_all_parent_and_child_urls(urls))
 
 
-def unescape_ascii(blob: bytes) -> bytes:
+def _has_u_escaped_lowercase_bytes(blob: bytes) -> bool:
+    return bool(re.search(r'\\u00[a-f0-9]{2}', blob.decode('utf-8', errors='ignore')))
+
+
+def _has_u_escaped_uppercase_bytes(blob: bytes) -> bool:
+    return bool(re.search(r'\\u00[A-F0-9]{2}', blob.decode('utf-8', errors='ignore')))
+
+
+def _has_x_escaped_lowercase_bytes(blob: bytes) -> bool:
+    return bool(re.search(r'\\x[a-f0-9]{2}', blob.decode('utf-8', errors='ignore')))
+
+
+def _has_x_escaped_uppercase_bytes(blob: bytes) -> bool:
+    return bool(re.search(r'\\x[A-F0-9]{2}', blob.decode('utf-8', errors='ignore')))
+
+
+def _unescape_ascii(blob: bytes) -> bytes:
     ascii_chars = string.ascii_letters + string.digits + string.punctuation
 
-    for char in ascii_chars:
-        hex_string_lowercase = f'\\x{format(ord(char), "x")}'.encode('utf-8')
-        blob = blob.replace(hex_string_lowercase, hex_string_lowercase.decode('unicode_escape').encode('utf-8'))
+    if _has_u_escaped_lowercase_bytes(blob):
+        for char in ascii_chars:
+            escaped = f'\\u00{format(ord(char), "x")}'.encode('utf-8')
+            blob = blob.replace(escaped, escaped.decode('unicode_escape').encode('utf-8'))
 
-        hex_string_uppercase = f'\\x{format(ord(char), "X")}'.encode('utf-8')
-        blob = blob.replace(hex_string_uppercase, hex_string_uppercase.decode('unicode_escape').encode('utf-8'))
+    if _has_u_escaped_uppercase_bytes(blob):
+        for char in ascii_chars:
+            escaped = f'\\u00{format(ord(char), "X")}'.encode('utf-8')
+            blob = blob.replace(escaped, escaped.decode('unicode_escape').encode('utf-8'))
 
-        unicode_string_lowercase = f'\\u00{format(ord(char), "x")}'.encode('utf-8')
-        blob = blob.replace(unicode_string_lowercase, unicode_string_lowercase.decode('unicode_escape').encode('utf-8'))
+    if _has_x_escaped_lowercase_bytes(blob):
+        for char in ascii_chars:
+            escaped = f'\\x{format(ord(char), "x")}'.encode('utf-8')
+            blob = blob.replace(escaped, escaped.decode('unicode_escape').encode('utf-8'))
 
-        unicode_string_uppercase = f'\\u00{format(ord(char), "X")}'.encode('utf-8')
-        blob = blob.replace(unicode_string_uppercase, unicode_string_uppercase.decode('unicode_escape').encode('utf-8'))
+    if _has_x_escaped_uppercase_bytes(blob):
+        for char in ascii_chars:
+            escaped = f'\\x{format(ord(char), "X")}'.encode('utf-8')
+            blob = blob.replace(escaped, escaped.decode('unicode_escape').encode('utf-8'))
 
     return blob
