@@ -18,8 +18,6 @@ def find_urls(blob: Union[bytes, str], base_url: str = '', mimetype: str = '') -
     if isinstance(blob, str):
         blob = blob.encode('utf-8', errors='ignore')
 
-    blob = _unescape_ascii(blob)
-
     if not mimetype:
         mimetype = magic.from_buffer(blob)
     mimetype = mimetype.lower()
@@ -29,6 +27,7 @@ def find_urls(blob: Union[bytes, str], base_url: str = '', mimetype: str = '') -
     if 'rfc 822' in mimetype or 'mail' in mimetype:
         return set()
     elif 'html' in mimetype:
+        blob = _unescape_ascii(blob)
         urls |= finders.HtmlUrlFinder(blob, base_url=base_url).find_urls()
     elif 'xml' in mimetype:
         urls |= finders.XmlUrlFinder(blob).find_urls()
