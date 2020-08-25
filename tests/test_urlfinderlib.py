@@ -1,6 +1,7 @@
 import os
 
 import urlfinderlib
+from urlfinderlib.urlfinderlib import _has_u_escaped_lowercase_bytes, _has_u_escaped_uppercase_bytes, _has_x_escaped_lowercase_bytes, _has_x_escaped_uppercase_bytes, _unescape_ascii
 
 this_dir = os.path.dirname(os.path.realpath(__file__))
 files_dir = os.path.realpath(f'{this_dir}/files')
@@ -110,3 +111,34 @@ def test_get_url_permutations():
     }
 
     assert urlfinderlib.get_url_permutations(url) == expected_permutations
+
+
+def test_has_u_escaped_lowercase_bytes():
+    assert _has_u_escaped_lowercase_bytes(b'This is a test') is False
+    assert _has_u_escaped_lowercase_bytes(b'This is \\u002A a test') is False
+    assert _has_u_escaped_lowercase_bytes(b'This is \\u002a a test') is True
+
+
+def test_has_u_escaped_uppercase_bytes():
+    assert _has_u_escaped_uppercase_bytes(b'This is a test') is False
+    assert _has_u_escaped_uppercase_bytes(b'This is \\u002A a test') is True
+    assert _has_u_escaped_uppercase_bytes(b'This is \\u002a a test') is False
+
+
+def test_has_x_escaped_lowercase_bytes():
+    assert _has_x_escaped_lowercase_bytes(b'This is a test') is False
+    assert _has_x_escaped_lowercase_bytes(b'This is \\x2A a test') is False
+    assert _has_x_escaped_lowercase_bytes(b'This is \\x2a a test') is True
+
+
+def test_has_x_escaped_uppercase_bytes():
+    assert _has_x_escaped_uppercase_bytes(b'This is a test') is False
+    assert _has_x_escaped_uppercase_bytes(b'This is \\x2A a test') is True
+    assert _has_x_escaped_uppercase_bytes(b'This is \\x2a a test') is False
+
+
+def test_unescape_ascii():
+    assert _unescape_ascii(b'\\x4d') == b'M'
+    assert _unescape_ascii(b'\\x4D') == b'M'
+    assert _unescape_ascii(b'\\u004d') == b'M'
+    assert _unescape_ascii(b'\\u004D') == b'M'
