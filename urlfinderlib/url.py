@@ -317,10 +317,9 @@ class URL:
     def get_base64_values(self) -> Set[str]:
         values = set()
 
-        for path in set(self._paths.values()):
-            for match in base64_pattern.findall(path):
-                if is_base64_ascii(match):
-                    values.add(base64.b64decode(f'{match}===').decode('ascii'))
+        for match in base64_pattern.findall(self._paths['original']):
+            if is_base64_ascii(match):
+                values.add(base64.b64decode(f'{match}===').decode('ascii'))
 
         return values
 
