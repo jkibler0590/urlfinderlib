@@ -26,10 +26,9 @@ class HtmlUrlFinder:
 
         self._base_url = base_url
 
-        self._soups = [
-            BeautifulSoup(utf8_string, features='html.parser'),
-            BeautifulSoup(unquoted_utf8_string, features='html.parser')
-        ]
+        self._soups = [BeautifulSoup(utf8_string, features='html.parser')]
+        if utf8_string != unquoted_utf8_string:
+            self._soups.append(BeautifulSoup(unquoted_utf8_string, features='html.parser'))
 
     def find_urls(self) -> Set[str]:
         urls = set()
