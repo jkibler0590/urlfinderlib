@@ -293,7 +293,7 @@ class URL:
         base64_pattern = re.compile(r'[A-Za-z0-9]+')
         values = set()
 
-        for path in self._paths.values():
+        for path in set(self._paths.values()):
             for match in base64_pattern.findall(path):
                 try:
                     values.add(base64.b64decode(f'{match}===').decode('utf-8', errors='ignore'))
