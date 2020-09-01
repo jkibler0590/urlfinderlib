@@ -13,6 +13,9 @@ from urllib.parse import parse_qs, quote, unquote, urlparse, urlsplit
 import urlfinderlib.helpers as helpers
 
 
+base64_pattern = re.compile(r'[A-Za-z0-9]+')
+
+
 def build_url(scheme: str, netloc: str, path: str) -> str:
     return f'{scheme}://{netloc}{path}'
 
@@ -171,6 +174,14 @@ def get_valid_urls(possible_urls: Set[str]) -> Set[str]:
     return remove_partial_urls(valid_urls)
 
 
+def is_base64_ascii(value: str) -> bool:
+    try:
+        base64.b64decode(f'{value}===').decode('ascii')
+        return True
+    except:
+        return False
+
+
 def is_netloc_ipv4(url: str) -> bool:
     try:
         split_url = urlsplit(url)
@@ -290,15 +301,12 @@ class URL:
         return {u for u in fixed_base64_values if is_url(u)}
 
     def get_base64_values(self) -> Set[str]:
-        base64_pattern = re.compile(r'[A-Za-z0-9]+')
         values = set()
 
         for path in set(self._paths.values()):
             for match in base64_pattern.findall(path):
-                try:
-                    values.add(base64.b64decode(f'{match}===').decode('utf-8', errors='ignore'))
-                except binascii.Error:
-                    pass
+                if is_base64_ascii(match):
+                    values.add(base64.b64decode(f'{match}===').decode('ascii'))
 
         return values
 
