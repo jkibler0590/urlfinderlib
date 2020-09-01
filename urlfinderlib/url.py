@@ -272,6 +272,9 @@ class URL:
         self._is_mandrillapp = 'mandrillapp.com' in self._value_lower and 'p' in self._query_dict
         self._is_proofpoint_v2 = 'urldefense.proofpoint.com/v2' in self._value_lower and 'u' in self._query_dict
 
+        self._child_urls = None
+        self._permutations = None
+
     def __eq__(self, other):
         if isinstance(other, str):
             return other in self.permutations
@@ -294,12 +297,18 @@ class URL:
         return self.value
 
     @property
-    def child_urls(self):
-        return self.get_child_urls()
+    def child_urls(self) -> Set['URL']:
+        if self._child_urls is None:
+            self._child_urls = self.get_child_urls()
+
+        return self._child_urls
 
     @property
-    def permutations(self):
-        return self.get_permutations()
+    def permutations(self) -> Set[str]:
+        if self._permutations is None:
+            self._permutations = self.get_permutations()
+
+        return self._permutations
 
     def get_base64_urls(self) -> Set[str]:
         fixed_base64_values = {helpers.fix_possible_value(v) for v in self.get_base64_values()}
@@ -336,7 +345,7 @@ class URL:
     def get_fragment_values(self) -> Set[str]:
         values = set()
 
-        for url in self.get_permutations():
+        for url in self.permutations:
             fragment_dict = get_fragment_dict(url)
             values |= {item for sublist in fragment_dict.values() for item in sublist}
 
@@ -355,7 +364,7 @@ class URL:
     def get_query_values(self) -> Set[str]:
         values = set()
 
-        for url in self.get_permutations():
+        for url in self.permutations:
             query_dict = get_query_dict(url)
             values |= {item for sublist in query_dict.values() for item in sublist}
 
