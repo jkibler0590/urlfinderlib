@@ -188,6 +188,9 @@ def is_netloc_ipv4(url: str) -> bool:
     except ValueError:
         return False
 
+    if not split_url.hostname:
+        return False
+
     return bool(validators.ipv4(split_url.hostname))
 
 
@@ -197,11 +200,17 @@ def is_netloc_localhost(url: str) -> bool:
     except ValueError:
         return False
 
+    if not split_url.hostname:
+        return False
+
     return split_url.hostname.lower() == 'localhost' or split_url.hostname.lower() == 'localhost.localdomain'
 
 
 def is_netloc_valid_tld(url: str) -> bool:
-    return bool(tld.get_tld(url, fail_silently=True))
+    try:
+        return bool(tld.get_tld(url, fail_silently=True))
+    except:
+        return False
 
 
 def is_url(url: str) -> bool:
@@ -213,7 +222,7 @@ def is_url(url: str) -> bool:
     if '.' not in url or ':' not in url or '/' not in url:
         return False
 
-    return is_valid_format(url) and (is_netloc_valid_tld(url) or is_netloc_ipv4(url) or is_netloc_localhost(url))
+    return (is_netloc_valid_tld(url) or is_netloc_ipv4(url) or is_netloc_localhost(url)) and is_valid_format(url)
 
 
 def is_url_ascii(url: str) -> bool:
