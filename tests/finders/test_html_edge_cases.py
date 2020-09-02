@@ -94,27 +94,27 @@ def test_missing_closing_html_tag():
 
 
 def test_missing_scheme_slash():
-    html = b'<html><body>http:/domain.com</body></html>'
+    html = b'<html><body>http:/domain.com/index.html</body></html>'
     finder = urlfinderlib.finders.HtmlUrlFinder(html)
-    assert finder.find_urls() == {'http://domain.com'}
+    assert finder.find_urls() == {'http://domain.com/index.html'}
 
 
 def test_missing_scheme_with_backslash():
-    html = b'<html><body><a href="/\\domain.com"></a></body>'
+    html = b'<html><body><a href="/\\domain.com/index.html"></a></body>'
     finder = urlfinderlib.finders.HtmlUrlFinder(html)
-    assert finder.find_urls() == {'http://domain.com'}
+    assert finder.find_urls() == {'http://domain.com/index.html'}
 
 
 def test_missing_scheme_with_colon():
-    html = b'<html><body>://domain.com</body></html>'
+    html = b'<html><body>://domain.com/index.html</body></html>'
     finder = urlfinderlib.finders.HtmlUrlFinder(html)
-    assert finder.find_urls() == {'http://domain.com'}
+    assert finder.find_urls() == {'http://domain.com/index.html'}
 
 
 def test_missing_scheme_without_colon():
-    html = b'<html><body>//domain.com</body></html>'
+    html = b'<html><body>//domain.com/index.html</body></html>'
     finder = urlfinderlib.finders.HtmlUrlFinder(html)
-    assert finder.find_urls() == {'http://domain.com'}
+    assert finder.find_urls() == {'http://domain.com/index.html'}
 
 
 def test_new_line_in_anchor_tag():
