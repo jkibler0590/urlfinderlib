@@ -260,13 +260,15 @@ class URL:
 
         self.value = value.rstrip('/')
         self._value_lower = self.value.lower()
-        self._split_value = urlsplit(self.value)
+
+        self._split_value = None
+        #self._split_value = urlsplit(self.value)
         self._query_dict = get_query_dict(self.value)
         self._fragment_dict = get_fragment_dict(self.value)
 
         self._netlocs = {
             'idna': get_netloc_idna(self.value),
-            'original': self._split_value.netloc.lower(),
+            'original': self.split_value.netloc.lower(),
             'unicode': get_netloc_unicode(self.value)
         }
 
@@ -279,7 +281,7 @@ class URL:
             'percent_encoded': get_path_percent_encoded(self.value)
         }
 
-        self.original_url = build_url(self._split_value.scheme, self._netlocs['original'], self._paths['original'])
+        self.original_url = build_url(self.split_value.scheme, self._netlocs['original'], self._paths['original'])
 
         self._is_mandrillapp = 'mandrillapp.com' in self._value_lower and 'p' in self._query_dict
         self._is_proofpoint_v2 = 'urldefense.proofpoint.com/v2' in self._value_lower and 'u' in self._query_dict
@@ -307,6 +309,13 @@ class URL:
 
     def __str__(self):
         return self.value
+
+    @property
+    def split_value(self):
+        if self._split_value is None:
+            self._split_value = urlsplit(self.value)
+
+        return self._split_value
 
     @property
     def child_urls(self) -> Set['URL']:
@@ -364,7 +373,7 @@ class URL:
 
     def get_permutations(self) -> Set[str]:
         return {
-            build_url(self._split_value.scheme, netloc, path) for netloc in
+            build_url(self.split_value.scheme, netloc, path) for netloc in
             self._netlocs.values() for path in
             self._paths.values()
         }
