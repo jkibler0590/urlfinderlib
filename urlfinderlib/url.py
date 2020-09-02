@@ -266,11 +266,10 @@ class URL:
         self._query_dict = None
         self._fragment_dict = None
 
-        self._netlocs = {
-            'idna': get_netloc_idna(self.value),
-            'original': self.split_value.netloc.lower(),
-            'unicode': get_netloc_unicode(self.value)
-        }
+        self._netloc_idna = None
+        self._netloc_original = None
+        self._netloc_unicode = None
+        self._netlocs = None
 
         self._paths = {
             'all_decoded': get_path_all_decoded(self.value),
@@ -281,7 +280,7 @@ class URL:
             'percent_encoded': get_path_percent_encoded(self.value)
         }
 
-        self.original_url = build_url(self.split_value.scheme, self._netlocs['original'], self._paths['original'])
+        self.original_url = build_url(self.split_value.scheme, self.netlocs['original'], self._paths['original'])
 
         self._is_mandrillapp = 'mandrillapp.com' in self._value_lower and 'p' in self.query_dict
         self._is_proofpoint_v2 = 'urldefense.proofpoint.com/v2' in self._value_lower and 'u' in self.query_dict
@@ -316,6 +315,61 @@ class URL:
             self._fragment_dict = parse_qs(self.parse_value.fragment)
 
         return self._fragment_dict
+
+    @property
+    def netloc_idna(self):
+        if self._netloc_idna is None:
+            if all(ord(char) < 128 for char in self.split_value.netloc):
+                self._netloc_idna = self.split_value.netloc.lower()
+                return self._netloc_idna
+
+            try:
+                self._netloc_idna = idna.encode(self.split_value.netloc).decode('utf-8').lower()
+                return self._netloc_idna
+            except idna.core.IDNAError:
+                try:
+                    self._netloc_idna = self.split_value.netloc.encode('idna').decode('utf-8', errors='ignore').lower()
+                    return self._netloc_idna
+                except UnicodeError:
+                    self._netloc_idna = ''
+
+        self._netloc_idna = ''
+        return self._netloc_idna
+
+    @property
+    def netloc_original(self):
+        if self._netloc_original is None:
+            self._netloc_original = self.split_value.netloc.lower()
+
+        return self._netloc_original
+
+    @property
+    def netloc_unicode(self):
+        if self._netloc_unicode is None:
+            if any(ord(char) >= 128 for char in self.split_value.netloc):
+                self._netloc_unicode = self.split_value.netloc.lower()
+                return self._netloc_unicode
+
+            try:
+                self._netloc_unicode = idna.decode(self.split_value.netloc).lower()
+                return self._netloc_unicode
+            except idna.core.IDNAError:
+                self._netloc_unicode = self.split_value.netloc.encode('utf-8', errors='ignore').decode('idna').lower()
+                return self._netloc_unicode
+
+        self._netloc_unicode = ''
+        return self._netloc_unicode
+
+    @property
+    def netlocs(self):
+        if self._netlocs is None:
+            self._netlocs = {
+                'idna': self.netloc_idna,
+                'original': self.netloc_original,
+                'unicode': self.netloc_unicode
+            }
+
+        return self._netlocs
 
     @property
     def parse_value(self):
@@ -395,7 +449,7 @@ class URL:
     def get_permutations(self) -> Set[str]:
         return {
             build_url(self.split_value.scheme, netloc, path) for netloc in
-            self._netlocs.values() for path in
+            self.netlocs.values() for path in
             self._paths.values()
         }
 

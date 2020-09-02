@@ -331,19 +331,19 @@ def test_url_get_query_values():
 
 def test_url_netlocs():
     idna_url = URL('http://xn--n28h.com')
-    assert idna_url._netlocs['idna'] == 'xn--n28h.com'
-    assert idna_url._netlocs['original'] == 'xn--n28h.com'
-    assert idna_url._netlocs['unicode'] == '😉.com'
+    assert idna_url.netlocs['idna'] == 'xn--n28h.com'
+    assert idna_url.netlocs['original'] == 'xn--n28h.com'
+    assert idna_url.netlocs['unicode'] == '😉.com'
 
     unicode_url = URL('http://😉.com')
-    assert unicode_url._netlocs['idna'] == 'xn--n28h.com'
-    assert unicode_url._netlocs['original'] == '😉.com'
-    assert unicode_url._netlocs['unicode'] == '😉.com'
+    assert unicode_url.netlocs['idna'] == 'xn--n28h.com'
+    assert unicode_url.netlocs['original'] == '😉.com'
+    assert unicode_url.netlocs['unicode'] == '😉.com'
 
     url = URL('http://DOMAIN.COM')
-    assert url._netlocs['idna'] == 'domain.com'
-    assert url._netlocs['original'] == 'domain.com'
-    assert url._netlocs['unicode'] == 'domain.com'
+    assert url.netlocs['idna'] == 'domain.com'
+    assert url.netlocs['original'] == 'domain.com'
+    assert url.netlocs['unicode'] == 'domain.com'
 
 
 def test_url_paths():
