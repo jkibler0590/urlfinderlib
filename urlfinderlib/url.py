@@ -262,7 +262,6 @@ class URL:
         self._value_lower = self.value.lower()
 
         self._split_value = None
-        #self._split_value = urlsplit(self.value)
         self._query_dict = get_query_dict(self.value)
         self._fragment_dict = get_fragment_dict(self.value)
 
