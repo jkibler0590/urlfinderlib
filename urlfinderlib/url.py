@@ -210,6 +210,9 @@ def is_url(url: str) -> bool:
     elif isinstance(url, bytes):
         url = url.decode('utf-8', errors='ignore')
 
+    if '.' not in url or ':' not in url or '/' not in url:
+        return False
+
     return is_valid_format(url) and (is_netloc_valid_tld(url) or is_netloc_ipv4(url) or is_netloc_localhost(url))
 
 
