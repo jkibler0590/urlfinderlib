@@ -123,6 +123,13 @@ def test_get_tokens_between_double_quotes(char_blob, expected):
     assert sorted(results) == sorted(expected)
 
 
+def test_get_tokens_between_open_and_close_sequence():
+    tok = UTF8Tokenizer(b'(https://www.domain.com)')
+    expected = ['https://www.domain.com']
+    results = tok.get_tokens_between_open_and_close_sequence('(http', ')')
+    assert sorted(results) == sorted(expected)
+
+
 def test_get_tokens_between_open_and_close_sequence_strict():
     blob = b'''<</S/URI/URI(http://domain.com/URI)>>
 <</Type/Action/S/URI/URI(http://domain2.com) >>

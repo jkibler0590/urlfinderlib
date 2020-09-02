@@ -13,6 +13,9 @@ from urllib.parse import parse_qs, quote, unquote, urlparse, urlsplit
 import urlfinderlib.helpers as helpers
 
 
+base64_pattern = re.compile(r'(((aHR0c)|(ZnRw))[a-zA-Z0-9]+)')
+
+
 def build_url(scheme: str, netloc: str, path: str) -> str:
     return f'{scheme}://{netloc}{path}'
 
@@ -171,10 +174,21 @@ def get_valid_urls(possible_urls: Set[str]) -> Set[str]:
     return remove_partial_urls(valid_urls)
 
 
+def is_base64_ascii(value: str) -> bool:
+    try:
+        base64.b64decode(f'{value}===').decode('ascii')
+        return True
+    except:
+        return False
+
+
 def is_netloc_ipv4(url: str) -> bool:
     try:
         split_url = urlsplit(url)
     except ValueError:
+        return False
+
+    if not split_url.hostname:
         return False
 
     return bool(validators.ipv4(split_url.hostname))
@@ -186,11 +200,17 @@ def is_netloc_localhost(url: str) -> bool:
     except ValueError:
         return False
 
+    if not split_url.hostname:
+        return False
+
     return split_url.hostname.lower() == 'localhost' or split_url.hostname.lower() == 'localhost.localdomain'
 
 
 def is_netloc_valid_tld(url: str) -> bool:
-    return bool(tld.get_tld(url, fail_silently=True))
+    try:
+        return bool(tld.get_tld(url, fail_silently=True))
+    except:
+        return False
 
 
 def is_url(url: str) -> bool:
@@ -199,7 +219,10 @@ def is_url(url: str) -> bool:
     elif isinstance(url, bytes):
         url = url.decode('utf-8', errors='ignore')
 
-    return is_valid_format(url) and (is_netloc_valid_tld(url) or is_netloc_ipv4(url) or is_netloc_localhost(url))
+    if '.' not in url or ':' not in url or '/' not in url:
+        return False
+
+    return (is_netloc_valid_tld(url) or is_netloc_ipv4(url) or is_netloc_localhost(url)) and is_valid_format(url)
 
 
 def is_url_ascii(url: str) -> bool:
@@ -261,8 +284,8 @@ class URL:
         self._is_mandrillapp = 'mandrillapp.com' in self._value_lower and 'p' in self._query_dict
         self._is_proofpoint_v2 = 'urldefense.proofpoint.com/v2' in self._value_lower and 'u' in self._query_dict
 
-        self.permutations = self.get_permutations()
-        self.child_urls = self.get_child_urls()
+        self._child_urls = None
+        self._permutations = None
 
     def __eq__(self, other):
         if isinstance(other, str):
@@ -285,20 +308,30 @@ class URL:
     def __str__(self):
         return self.value
 
+    @property
+    def child_urls(self) -> Set['URL']:
+        if self._child_urls is None:
+            self._child_urls = self.get_child_urls()
+
+        return self._child_urls
+
+    @property
+    def permutations(self) -> Set[str]:
+        if self._permutations is None:
+            self._permutations = self.get_permutations()
+
+        return self._permutations
+
     def get_base64_urls(self) -> Set[str]:
         fixed_base64_values = {helpers.fix_possible_value(v) for v in self.get_base64_values()}
         return {u for u in fixed_base64_values if is_url(u)}
 
     def get_base64_values(self) -> Set[str]:
-        base64_pattern = re.compile(r'[A-Za-z0-9]+')
         values = set()
 
-        for path in self._paths.values():
-            for match in base64_pattern.findall(path):
-                try:
-                    values.add(base64.b64decode(f'{match}===').decode('utf-8', errors='ignore'))
-                except binascii.Error:
-                    pass
+        for match in base64_pattern.findall(self._paths['original']):
+            if is_base64_ascii(match[0]):
+                values.add(base64.b64decode(f'{match[0]}===').decode('ascii'))
 
         return values
 
@@ -323,7 +356,7 @@ class URL:
     def get_fragment_values(self) -> Set[str]:
         values = set()
 
-        for url in self.get_permutations():
+        for url in self.permutations:
             fragment_dict = get_fragment_dict(url)
             values |= {item for sublist in fragment_dict.values() for item in sublist}
 
@@ -342,7 +375,7 @@ class URL:
     def get_query_values(self) -> Set[str]:
         values = set()
 
-        for url in self.get_permutations():
+        for url in self.permutations:
             query_dict = get_query_dict(url)
             values |= {item for sublist in query_dict.values() for item in sublist}
 

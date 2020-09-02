@@ -154,6 +154,12 @@ def test_get_valid_urls():
     }) == {'http://domain.com', 'http://domain2.com'}
 
 
+def test_is_base64_ascii():
+    assert is_base64_ascii('asdf') is False
+    assert is_base64_ascii('faß') is False
+    assert is_base64_ascii('YXNkZgo=') is True
+
+
 def test_is_netloc_ipv4():
     valid_ipv4_netloc = [
         'http://1.1.1.1',

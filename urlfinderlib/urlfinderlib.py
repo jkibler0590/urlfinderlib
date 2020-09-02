@@ -43,7 +43,7 @@ def find_urls(blob: Union[bytes, str], base_url: str = '', mimetype: str = '') -
 
     urls = {URL(u) for u in urls}
 
-    return remove_partial_urls(get_all_parent_and_child_urls(urls))
+    return get_all_parent_and_child_urls(urls)
 
 
 def _has_u_escaped_lowercase_bytes(blob: bytes) -> bool:

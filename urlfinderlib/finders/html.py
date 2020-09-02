@@ -3,6 +3,7 @@ import warnings
 
 from bs4 import BeautifulSoup
 from bs4.element import Comment
+from itertools import chain
 from typing import Set, Union
 from urllib.parse import unquote, urljoin
 
@@ -26,10 +27,9 @@ class HtmlUrlFinder:
 
         self._base_url = base_url
 
-        self._soups = [
-            BeautifulSoup(utf8_string, features='html.parser'),
-            BeautifulSoup(unquoted_utf8_string, features='html.parser')
-        ]
+        self._soups = [BeautifulSoup(utf8_string, features='html.parser')]
+        if utf8_string != unquoted_utf8_string:
+            self._soups.append(BeautifulSoup(unquoted_utf8_string, features='html.parser'))
 
     def find_urls(self) -> Set[str]:
         urls = set()
@@ -52,15 +52,33 @@ class HtmlSoupUrlFinder:
         possible_urls |= self._find_document_write_urls()
         possible_urls |= self._find_visible_urls()
 
-        tok = tokenizer.UTF8Tokenizer(str(self._soup))
-        possible_urls |= set(tok.get_tokens_between_double_quotes())
-        possible_urls |= set(tok.get_tokens_between_single_quotes())
-
         srcset_values = self._get_srcset_values()
         possible_urls = {u for u in possible_urls if not any(srcset_value in u for srcset_value in srcset_values)}
         possible_urls |= {urljoin(self._base_url, u) for u in srcset_values}
 
-        return get_valid_urls(possible_urls)
+        valid_urls = get_valid_urls(possible_urls)
+
+        tok = tokenizer.UTF8Tokenizer(str(self._soup))
+
+        token_iter = chain(
+            tok.get_tokens_between_open_and_close_sequence('"http', '"', strict=True),
+            tok.get_tokens_between_open_and_close_sequence('"ftp', '"', strict=True),
+
+            tok.get_tokens_between_open_and_close_sequence("'http", "'", strict=True),
+            tok.get_tokens_between_open_and_close_sequence("'ftp", "'", strict=True),
+
+            tok.get_tokens_between_open_and_close_sequence('"HTTP', '"', strict=True),
+            tok.get_tokens_between_open_and_close_sequence('"FTP', '"', strict=True),
+
+            tok.get_tokens_between_open_and_close_sequence("'HTTP", "'", strict=True),
+            tok.get_tokens_between_open_and_close_sequence("'FTP", "'", strict=True)
+        )
+
+        for token in token_iter:
+            if not any(u in token for u in valid_urls):
+                valid_urls |= TextUrlFinder(token).find_urls()
+
+        return valid_urls
 
     def _find_document_write_urls(self) -> Set[str]:
         urls = set()

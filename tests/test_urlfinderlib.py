@@ -76,6 +76,7 @@ def test_find_urls_text_xml():
 
     expected_urls = {
         'http://schemas.microsoft.com/office/drawing/2010/main',
+        'http://schemas.openxmlformats.org/drawingml/2006/chart',
         'http://schemas.openxmlformats.org/drawingml/2006/chartDrawing',
         'http://schemas.openxmlformats.org/drawingml/2006/main',
         'http://schemas.openxmlformats.org/markup-compatibility/2006'
