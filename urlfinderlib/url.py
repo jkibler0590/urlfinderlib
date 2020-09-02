@@ -262,7 +262,7 @@ class URL:
         self._value_lower = self.value.lower()
 
         self._split_value = None
-        self._query_dict = get_query_dict(self.value)
+        self._query_dict = None
         self._fragment_dict = get_fragment_dict(self.value)
 
         self._netlocs = {
@@ -282,8 +282,8 @@ class URL:
 
         self.original_url = build_url(self.split_value.scheme, self._netlocs['original'], self._paths['original'])
 
-        self._is_mandrillapp = 'mandrillapp.com' in self._value_lower and 'p' in self._query_dict
-        self._is_proofpoint_v2 = 'urldefense.proofpoint.com/v2' in self._value_lower and 'u' in self._query_dict
+        self._is_mandrillapp = 'mandrillapp.com' in self._value_lower and 'p' in self.query_dict
+        self._is_proofpoint_v2 = 'urldefense.proofpoint.com/v2' in self._value_lower and 'u' in self.query_dict
 
         self._child_urls = None
         self._permutations = None
@@ -308,6 +308,13 @@ class URL:
 
     def __str__(self):
         return self.value
+
+    @property
+    def query_dict(self):
+        if self._query_dict is None:
+            self._query_dict = parse_qs(urlparse(self.value).query)
+
+        return self._query_dict
 
     @property
     def split_value(self):

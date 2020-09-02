@@ -136,7 +136,7 @@ def test_get_path_percent_encoded():
 
 def test_get_query_dict():
     url = URL('http://domain.com/index.php?one=1&two=2&three=3')
-    assert url._query_dict == {'one': ['1'], 'two': ['2'], 'three': ['3']}
+    assert url.query_dict == {'one': ['1'], 'two': ['2'], 'three': ['3']}
 
 
 def test_get_scheme():
