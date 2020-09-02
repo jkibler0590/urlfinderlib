@@ -261,9 +261,10 @@ class URL:
         self.value = value.rstrip('/')
         self._value_lower = self.value.lower()
 
+        self._parse_value = None
         self._split_value = None
         self._query_dict = None
-        self._fragment_dict = get_fragment_dict(self.value)
+        self._fragment_dict = None
 
         self._netlocs = {
             'idna': get_netloc_idna(self.value),
@@ -310,9 +311,23 @@ class URL:
         return self.value
 
     @property
+    def fragment_dict(self):
+        if self._fragment_dict is None:
+            self._fragment_dict = parse_qs(self.parse_value.fragment)
+
+        return self._fragment_dict
+
+    @property
+    def parse_value(self):
+        if self._parse_value is None:
+            self._parse_value = urlparse(self.value)
+        
+        return self._parse_value
+
+    @property
     def query_dict(self):
         if self._query_dict is None:
-            self._query_dict = parse_qs(urlparse(self.value).query)
+            self._query_dict = parse_qs(self.parse_value.query)
 
         return self._query_dict
 

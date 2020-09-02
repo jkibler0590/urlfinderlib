@@ -94,7 +94,7 @@ def test_get_ascii_url():
 
 def test_get_fragment_dict():
     url = URL('http://domain.com/index.php#one=1&two=2&three=3')
-    assert url._fragment_dict == {'one': ['1'], 'two': ['2'], 'three': ['3']}
+    assert url.fragment_dict == {'one': ['1'], 'two': ['2'], 'three': ['3']}
 
 
 def test_get_netloc_idna():
