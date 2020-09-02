@@ -13,7 +13,7 @@ from urllib.parse import parse_qs, quote, unquote, urlparse, urlsplit
 import urlfinderlib.helpers as helpers
 
 
-base64_pattern = re.compile(r'[A-Za-z0-9]+')
+base64_pattern = re.compile(r'(((aHR0c)|(ZnRw))[a-zA-Z0-9]+)')
 
 
 def build_url(scheme: str, netloc: str, path: str) -> str:
@@ -321,8 +321,8 @@ class URL:
         values = set()
 
         for match in base64_pattern.findall(self._paths['original']):
-            if is_base64_ascii(match):
-                values.add(base64.b64decode(f'{match}===').decode('ascii'))
+            if is_base64_ascii(match[0]):
+                values.add(base64.b64decode(f'{match[0]}===').decode('ascii'))
 
         return values
 
