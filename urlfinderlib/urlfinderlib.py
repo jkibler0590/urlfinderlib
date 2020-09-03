@@ -6,7 +6,7 @@ from typing import Set, Union
 
 import urlfinderlib.finders as finders
 
-from urlfinderlib.url import URL, URLList, remove_partial_urls
+from urlfinderlib.url import URL, URLList
 
 
 def get_url_permutations(url: str) -> Set[str]:

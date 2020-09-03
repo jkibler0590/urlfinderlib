@@ -208,15 +208,15 @@ def test_is_valid_format():
 
 
 def test_remove_partial_urls():
-    urls = {
-        'http://domain.com/about us/index.php',
-        'http://domain.com/about us',
-        'http://domain.com'
-    }
+    urls = URLList([
+        URL('http://domain.com/about us/index.php'),
+        URL('http://domain.com/about us'),
+        URL('http://domain.com')
+    ])
 
-    expected_urls = {'http://domain.com/about us/index.php', 'http://domain.com'}
+    expected_urls = URLList(['http://domain.com/about us/index.php', 'http://domain.com'])
 
-    assert remove_partial_urls(urls) == expected_urls
+    assert urls.remove_partial_urls() == expected_urls
 
 
 def test_repr():

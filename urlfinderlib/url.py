@@ -8,8 +8,8 @@ import tld
 import validators
 
 from collections import UserList
-from typing import Set, Union
-from urllib.parse import parse_qs, quote, unquote, urlparse, urlsplit
+from typing import AnyStr, Dict, List, Set, Union
+from urllib.parse import parse_qs, quote, unquote, urlparse, urlsplit, ParseResult, SplitResult
 
 import urlfinderlib.helpers as helpers
 
@@ -17,8 +17,9 @@ import urlfinderlib.helpers as helpers
 base64_pattern = re.compile(r'(((aHR0c)|(ZnRw))[a-zA-Z0-9]+)')
 
 
+# TODO: Change this to inherit from a set
 class URLList(UserList):
-    def __eq__(self, other):
+    def __eq__(self, other: Union[list, 'URLList']) -> bool:
         if isinstance(other, list):
             return sorted(self.data) == sorted(other)
         elif isinstance(other, URLList):
@@ -26,7 +27,7 @@ class URLList(UserList):
         else:
             return False
 
-    def append(self, value):
+    def append(self, value: Union[str, 'URL']) -> None:
         if isinstance(value, str):
             value = URL(value)
 
@@ -36,8 +37,7 @@ class URLList(UserList):
             elif value.is_url_ascii:
                 self.data.append(URL(helpers.get_ascii_url(value.value)))
 
-
-    def get_all_urls(self):
+    def get_all_urls(self) -> Set[str]:
         if self.data:
             all_urls = []
             stack = self.data[:]
@@ -51,13 +51,12 @@ class URLList(UserList):
         
         return set()
 
-
-def remove_partial_urls(urls: Set[str]) -> Set[str]:
-    return {
-        url for url in urls if
-        not any(u.startswith(url) and u != url for u in urls) or
-        not urlsplit(url).path
-    }
+    def remove_partial_urls(self) -> 'URLList':
+        return URLList({
+            url.value for url in self.data if
+            not any(u.value.startswith(url.value) and u != url.value for u in self.data) or
+            not url.split_value.path
+        })
 
 
 class URL:
@@ -69,26 +68,23 @@ class URL:
             value = value.value
 
         self.value = value.rstrip('/') if value else ''
-        self._value_lower = None
 
+        self._child_urls = None
+        self._fragment_dict = None
+        self._is_mandrillapp = None
+        self._is_netloc_ipv4 = None
+        self._is_netloc_localhost = None
+        self._is_netloc_valid_tld = None
+        self._is_proofpoint_v2 = None
         self._is_url = None
         self._is_url_ascii = None
         self._is_valid_format = None
-
-        self._parse_value = None
-        self._split_value = None
-        self._query_dict = None
-        self._fragment_dict = None
-
         self._netloc_idna = None
         self._netloc_original = None
         self._netloc_unicode = None
         self._netlocs = None
-
-        self._is_netloc_ipv4 = None
-        self._is_netloc_localhost = None
-        self._is_netloc_valid_tld = None
-
+        self._original_url = None
+        self._parse_value = None
         self._path_all_decoded = None
         self._path_html_decoded = None
         self._path_html_encoded = None
@@ -96,16 +92,12 @@ class URL:
         self._path_percent_decoded = None
         self._path_percent_encoded = None
         self._paths = None
-
-        self._original_url = None
-
-        self._is_mandrillapp = None
-        self._is_proofpoint_v2 = None
-
-        self._child_urls = None
         self._permutations = None
+        self._query_dict = None
+        self._split_value = None
+        self._value_lower = None
 
-    def __eq__(self, other):
+    def __eq__(self, other: Union[bytes, str, 'URL']) -> bool:
         if isinstance(other, str):
             return other in self.permutations
 
@@ -117,37 +109,44 @@ class URL:
 
         return False
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self.value)
 
-    def __lt__(self, other):
+    def __lt__(self, other: 'URL') -> bool:
         if isinstance(other, URL):
             return self.value < other.value
 
         return False
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'URL: {self.value}'
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.value
 
     @property
-    def fragment_dict(self):
+    def child_urls(self) -> 'URLList':
+        if self._child_urls is None:
+            self._child_urls = self.get_child_urls()
+
+        return self._child_urls
+
+    @property
+    def fragment_dict(self) -> Dict[AnyStr, List[AnyStr]]:
         if self._fragment_dict is None:
             self._fragment_dict = parse_qs(self.parse_value.fragment)
 
         return self._fragment_dict
 
     @property
-    def is_mandrillapp(self):
+    def is_mandrillapp(self) -> bool:
         if self._is_mandrillapp is None:
             self._is_mandrillapp = 'mandrillapp.com' in self.value_lower and 'p' in self.query_dict
 
         return self._is_mandrillapp
 
     @property
-    def is_netloc_ipv4(self):
+    def is_netloc_ipv4(self) -> bool:
         if self._is_netloc_ipv4 is None:
             if not self.split_value.hostname:
                 self._is_netloc_ipv4 = False
@@ -157,7 +156,7 @@ class URL:
         return self._is_netloc_ipv4
 
     @property
-    def is_netloc_localhost(self):
+    def is_netloc_localhost(self) -> bool:
         if self._is_netloc_localhost is None:
             if not self.split_value.hostname:
                 self._is_netloc_localhost = False
@@ -167,7 +166,7 @@ class URL:
         return self._is_netloc_localhost
 
     @property
-    def is_netloc_valid_tld(self):
+    def is_netloc_valid_tld(self) -> bool:
         if self._is_netloc_valid_tld is None:
             try:
                 self._is_netloc_valid_tld = bool(tld.get_tld(self.value, fail_silently=True))
@@ -177,14 +176,14 @@ class URL:
         return self._is_netloc_valid_tld
 
     @property
-    def is_proofpoint_v2(self):
+    def is_proofpoint_v2(self) -> bool:
         if self._is_proofpoint_v2 is None:
             self._is_proofpoint_v2 = 'urldefense.proofpoint.com/v2' in self.value_lower and 'u' in self.query_dict
 
         return self._is_proofpoint_v2
 
     @property
-    def is_url(self):
+    def is_url(self) -> bool:
         if self._is_url is None:
             if '.' not in self.value or ':' not in self.value or '/' not in self.value:
                 self._is_url = False
@@ -194,7 +193,7 @@ class URL:
         return self._is_url
 
     @property
-    def is_url_ascii(self):
+    def is_url_ascii(self) -> bool:
         if self._is_url_ascii is None:
             url = self.value.encode('ascii', errors='ignore').decode()
             self._is_url_ascii = URL(url).is_url
@@ -202,7 +201,7 @@ class URL:
         return self._is_url_ascii
 
     @property
-    def is_valid_format(self):
+    def is_valid_format(self) -> bool:
         if self._is_valid_format is None:
             if not re.match(r'^[a-zA-Z0-9\-\.\:\@]{1,255}$', self.netloc_idna):
                 return False
@@ -213,7 +212,7 @@ class URL:
         return self._is_valid_format
 
     @property
-    def netloc_idna(self):
+    def netloc_idna(self) -> str:
         if self._netloc_idna is None:
             if all(ord(char) < 128 for char in self.split_value.netloc):
                 self._netloc_idna = self.split_value.netloc.lower()
@@ -234,14 +233,14 @@ class URL:
         return self._netloc_idna
 
     @property
-    def netloc_original(self):
+    def netloc_original(self) -> str:
         if self._netloc_original is None:
             self._netloc_original = self.split_value.netloc.lower()
 
         return self._netloc_original
 
     @property
-    def netloc_unicode(self):
+    def netloc_unicode(self) -> str:
         if self._netloc_unicode is None:
             if any(ord(char) >= 128 for char in self.split_value.netloc):
                 self._netloc_unicode = self.split_value.netloc.lower()
@@ -257,7 +256,7 @@ class URL:
         return self._netloc_unicode
 
     @property
-    def netlocs(self):
+    def netlocs(self) -> Dict[AnyStr, AnyStr]:
         if self._netlocs is None:
             self._netlocs = {
                 'idna': self.netloc_idna,
@@ -268,42 +267,42 @@ class URL:
         return self._netlocs
 
     @property
-    def original_url(self):
+    def original_url(self) -> str:
         if self._original_url is None:
             self._original_url = helpers.build_url(self.split_value.scheme, self.netloc_original, self.path_original)
 
         return self._original_url
 
     @property
-    def parse_value(self):
+    def parse_value(self) -> ParseResult:
         if self._parse_value is None:
             self._parse_value = urlparse(self.value)
         
         return self._parse_value
 
     @property
-    def path_all_decoded(self):
+    def path_all_decoded(self) -> str:
         if self._path_all_decoded is None:
             self._path_all_decoded = html.unescape(unquote(self.path_original))
 
         return self._path_all_decoded
 
     @property
-    def path_html_decoded(self):
+    def path_html_decoded(self) -> str:
         if self._path_html_decoded is None:
             self._path_html_decoded = html.unescape(self.path_original)
 
         return self._path_html_decoded
 
     @property
-    def path_html_encoded(self):
+    def path_html_encoded(self) -> str:
         if self._path_html_encoded is None:
             self._path_html_encoded = html.escape(self.path_all_decoded)
 
         return self._path_html_encoded
 
     @property
-    def path_original(self):
+    def path_original(self) -> str:
         if self._path_original is None:
             path = self.split_value.path
             query = self.split_value.query
@@ -323,14 +322,14 @@ class URL:
         return self._path_original
 
     @property
-    def path_percent_decoded(self):
+    def path_percent_decoded(self) -> str:
         if self._path_percent_decoded is None:
             self._path_percent_decoded = unquote(self.path_original)
 
         return self._path_percent_decoded
 
     @property
-    def path_percent_encoded(self):
+    def path_percent_encoded(self) -> str:
         if self._path_percent_encoded is None:
             """
             Line breaks are included in safe_chars because they should not exist in a valid URL.
@@ -343,7 +342,7 @@ class URL:
         return self._path_percent_encoded
 
     @property
-    def paths(self):
+    def paths(self) -> Dict[AnyStr, AnyStr]:
         if self._paths is None:
             self._paths = {
                 'all_decoded': self.path_all_decoded,
@@ -357,14 +356,21 @@ class URL:
         return self._paths
 
     @property
-    def query_dict(self):
+    def permutations(self) -> Set[str]:
+        if self._permutations is None:
+            self._permutations = self.get_permutations()
+
+        return self._permutations
+
+    @property
+    def query_dict(self) -> Dict[AnyStr, List[AnyStr]]:
         if self._query_dict is None:
             self._query_dict = parse_qs(self.parse_value.query)
 
         return self._query_dict
 
     @property
-    def split_value(self):
+    def split_value(self) -> SplitResult:
         if self._split_value is None:
             try:
                 self._split_value = urlsplit(self.value)
@@ -374,25 +380,32 @@ class URL:
         return self._split_value
 
     @property
-    def child_urls(self) -> Set['URL']:
-        if self._child_urls is None:
-            self._child_urls = self.get_child_urls()
-
-        return self._child_urls
-
-    @property
-    def permutations(self) -> Set[str]:
-        if self._permutations is None:
-            self._permutations = self.get_permutations()
-
-        return self._permutations
-
-    @property
-    def value_lower(self):
+    def value_lower(self) -> str:
         if self._value_lower is None:
             self._value_lower = self.value.lower()
 
         return self._value_lower
+
+    def decode_mandrillapp(self) -> str:
+        decoded = base64.b64decode(f'{self.query_dict["p"][0]}===')
+
+        try:
+            outer_json = json.loads(decoded)
+            inner_json = json.loads(outer_json['p'])
+            possible_url = inner_json['url']
+            return possible_url if URL(possible_url).is_url else ''
+        except json.JSONDecodeError:
+            return ''
+        except UnicodeDecodeError:
+            return ''
+
+    def decode_proofpoint_v2(self) -> str:
+        try:
+            query_url = self.query_dict['u'][0]
+            possible_url = query_url.replace('-3A', ':').replace('_', '/').replace('-2D', '-')
+            return possible_url if URL(possible_url).is_url else ''
+        except KeyError:
+            return ''
 
     def get_base64_urls(self) -> Set[str]:
         fixed_base64_values = {helpers.fix_possible_value(v) for v in self.get_base64_values()}
@@ -407,7 +420,7 @@ class URL:
 
         return values
 
-    def get_child_urls(self) -> Set['URL']:
+    def get_child_urls(self) -> 'URLList':
         child_urls = []
 
         child_urls += self.get_query_urls()
@@ -452,24 +465,3 @@ class URL:
             values |= {item for sublist in URL(url).query_dict.values() for item in sublist}
 
         return values
-
-    def decode_mandrillapp(self) -> str:
-        decoded = base64.b64decode(f'{self.query_dict["p"][0]}===')
-
-        try:
-            outer_json = json.loads(decoded)
-            inner_json = json.loads(outer_json['p'])
-            possible_url = inner_json['url']
-            return possible_url if URL(possible_url).is_url else ''
-        except json.JSONDecodeError:
-            return ''
-        except UnicodeDecodeError:
-            return ''
-
-    def decode_proofpoint_v2(self) -> str:
-        try:
-            query_url = self.query_dict['u'][0]
-            possible_url = query_url.replace('-3A', ':').replace('_', '/').replace('-2D', '-')
-            return possible_url if URL(possible_url).is_url else ''
-        except KeyError:
-            return ''
