@@ -193,10 +193,10 @@ def test_is_netloc_localhost():
     ]
 
     for url in valid_localhost_netloc:
-        assert is_netloc_localhost(url) is True
+        assert URL(url).is_netloc_localhost is True
 
     for url in invalid_localhost_netloc:
-        assert is_netloc_localhost(url) is False
+        assert URL(url).is_netloc_localhost is False
 
 
 def test_is_netloc_valid_tld():
