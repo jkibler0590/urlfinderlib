@@ -282,7 +282,6 @@ class URL:
         self._original_url = None
 
         self._is_mandrillapp = None
-        #self._is_mandrillapp = 'mandrillapp.com' in self.value_lower and 'p' in self.query_dict
         self._is_proofpoint_v2 = 'urldefense.proofpoint.com/v2' in self.value_lower and 'u' in self.query_dict
 
         self._child_urls = None
