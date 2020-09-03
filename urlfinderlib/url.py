@@ -64,16 +64,12 @@ def get_ascii_url(url: str) -> str:
     return url.encode('ascii', errors='ignore').decode()
 
 
-def get_path_all_decoded(url: str) -> str:
-    return html.unescape(unquote(get_path_original(url)))
-
-
 def get_path_html_decoded(url: str) -> str:
     return html.unescape(get_path_original(url))
 
 
 def get_path_html_encoded(url: str) -> str:
-    return html.escape(get_path_all_decoded(url))
+    return html.escape(URL(url).path_all_decoded)
 
 
 def get_path_original(url: str) -> str:
@@ -110,7 +106,7 @@ def get_path_percent_encoded(url: str) -> str:
     """
     safe_chars = '/\n\r'
 
-    return quote(get_path_all_decoded(url), safe=safe_chars)
+    return quote(URL(url).path_all_decoded, safe=safe_chars)
 
 
 def get_query_dict(url) -> dict:

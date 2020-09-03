@@ -110,7 +110,7 @@ def test_get_netloc_unicode():
 
 
 def test_get_path_all_decoded():
-    assert get_path_all_decoded('http://domain.com/?index%3D1&lt;2') == '/?index=1<2'
+    assert URL('http://domain.com/?index%3D1&lt;2').path_all_decoded == '/?index=1<2'
 
 
 def test_get_path_html_decoded():
