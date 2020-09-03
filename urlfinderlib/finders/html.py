@@ -66,6 +66,7 @@ class HtmlSoupUrlFinder:
 
         tok = tokenizer.UTF8Tokenizer(str(self._soup))
 
+        # TODO: itertools.product(*zip(string.lower(), string.upper()))
         token_iter = chain(
             tok.get_tokens_between_open_and_close_sequence('"http', '"', strict=True),
             tok.get_tokens_between_open_and_close_sequence('"ftp', '"', strict=True),

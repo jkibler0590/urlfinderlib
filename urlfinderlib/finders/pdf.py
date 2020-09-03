@@ -17,6 +17,7 @@ class PdfUrlFinder:
     def find_urls(self) -> Set[str]:
         tok = tokenizer.UTF8Tokenizer(self.blob)
 
+        # TODO: itertools.product(*zip(string.lower(), string.upper()))
         token_iter = chain(
             tok.get_tokens_between_open_and_close_sequence('/URI', '>>', strict=True),
 
