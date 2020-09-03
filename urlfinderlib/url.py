@@ -516,7 +516,7 @@ class URL:
         values = set()
 
         for url in self.permutations:
-            values |= {item for sublist in self.fragment_dict.values() for item in sublist}
+            values |= {item for sublist in URL(url).fragment_dict.values() for item in sublist}
 
         return values
 
