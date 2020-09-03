@@ -118,7 +118,7 @@ def test_get_path_html_decoded():
 
 
 def test_get_path_html_encoded():
-    assert get_path_html_encoded('http://domain.com/?index=1<2') == '/?index=1&lt;2'
+    assert URL('http://domain.com/?index=1<2').path_html_encoded == '/?index=1&lt;2'
 
 
 def test_get_path_original():

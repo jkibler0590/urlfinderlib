@@ -62,11 +62,11 @@ def get_all_parent_and_child_urls(urls: Union[Set['URL'], 'URL'], ret=None) -> S
 
 def get_ascii_url(url: str) -> str:
     return url.encode('ascii', errors='ignore').decode()
-    
 
+"""
 def get_path_html_encoded(url: str) -> str:
     return html.escape(URL(url).path_all_decoded)
-
+"""
 
 def get_path_original(url: str) -> str:
     try:
