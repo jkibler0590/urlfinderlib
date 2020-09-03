@@ -220,14 +220,14 @@ def test_is_netloc_valid_tld():
 
 def test_is_url():
     for url in valid_urls:
-        assert is_url(url) is True
+        assert URL(url).is_url is True
 
     for url in invalid_urls:
-        assert is_url(url) is False
+        assert URL(url).is_url is False
 
 
 def test_is_url_ascii():
-    assert is_url('http://d😉o😉m😉a😉i😉n😉.😉c😉o😉m') is False
+    assert URL('http://d😉o😉m😉a😉i😉n😉.😉c😉o😉m').is_url is False
     assert is_url_ascii('http://d😉o😉m😉a😉i😉n😉.😉c😉o😉m') is True
 
 

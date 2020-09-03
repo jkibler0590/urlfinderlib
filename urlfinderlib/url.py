@@ -28,7 +28,7 @@ def decode_mandrillapp(url: str) -> str:
         outer_json = json.loads(decoded)
         inner_json = json.loads(outer_json['p'])
         possible_url = inner_json['url']
-        return possible_url if is_url(possible_url) else ''
+        return possible_url if URL(possible_url).is_url else ''
     except json.JSONDecodeError:
         return ''
     except UnicodeDecodeError:
@@ -41,7 +41,7 @@ def decode_proofpoint_v2(url: str) -> str:
     try:
         query_url = query_dict['u'][0]
         possible_url = query_url.replace('-3A', ':').replace('_', '/').replace('-2D', '-')
-        return possible_url if is_url(possible_url) else ''
+        return possible_url if URL(possible_url).is_url else ''
     except KeyError:
         return ''
 
@@ -69,7 +69,7 @@ def get_valid_urls(possible_urls: Set[str]) -> Set[str]:
 
     possible_urls = {helpers.fix_possible_url(u) for u in possible_urls if '.' in u}
     for possible_url in possible_urls:
-        if is_url(possible_url):
+        if URL(possible_url).is_url:
             valid_urls.add(possible_url)
         elif is_url_ascii(possible_url):
             valid_urls.add(get_ascii_url(possible_url))
@@ -85,21 +85,9 @@ def is_base64_ascii(value: str) -> bool:
         return False
 
 
-def is_url(url: str) -> bool:
-    if not url:
-        return False
-    elif isinstance(url, bytes):
-        url = url.decode('utf-8', errors='ignore')
-
-    if '.' not in url or ':' not in url or '/' not in url:
-        return False
-
-    return (URL(url).is_netloc_valid_tld or URL(url).is_netloc_ipv4 or URL(url).is_netloc_localhost) and URL(url).is_valid_format
-
-
 def is_url_ascii(url: str) -> bool:
     url = url.encode('ascii', errors='ignore').decode()
-    return is_url(url)
+    return URL(url).is_url
 
 
 def remove_partial_urls(urls: Set[str]) -> Set[str]:
@@ -115,10 +103,10 @@ class URL:
         if isinstance(value, bytes):
             value = value.decode('utf-8', errors='ignore')
 
-        self.value = value.rstrip('/')
+        self.value = value.rstrip('/') if value else ''
         self._value_lower = None
 
-        self._is_valid = None
+        self._is_url = None
         self._is_valid_format = None
 
         self._parse_value = None
@@ -224,14 +212,14 @@ class URL:
         return self._is_proofpoint_v2
 
     @property
-    def is_valid(self):
-        if self._is_valid is None:
+    def is_url(self):
+        if self._is_url is None:
             if '.' not in self.value or ':' not in self.value or '/' not in self.value:
-                self._is_valid = False
+                self._is_url = False
             else:
-                self._is_valid = (self.is_netloc_valid_tld or self.is_netloc_ipv4 or self.is_netloc_localhost) and is_valid_format(self.value)
+                self._is_url = (self.is_netloc_valid_tld or self.is_netloc_ipv4 or self.is_netloc_localhost) and self.is_valid_format
 
-        return self._is_valid
+        return self._is_url
 
     @property
     def is_valid_format(self):
@@ -430,7 +418,7 @@ class URL:
 
     def get_base64_urls(self) -> Set[str]:
         fixed_base64_values = {helpers.fix_possible_value(v) for v in self.get_base64_values()}
-        return {u for u in fixed_base64_values if is_url(u)}
+        return {u for u in fixed_base64_values if URL(u).is_url}
 
     def get_base64_values(self) -> Set[str]:
         values = set()
@@ -457,7 +445,7 @@ class URL:
         return {URL(u) for u in child_urls}
 
     def get_fragment_urls(self) -> Set[str]:
-        return {v for v in self.get_fragment_values() if is_url(v)}
+        return {v for v in self.get_fragment_values() if URL(v).is_url}
 
     def get_fragment_values(self) -> Set[str]:
         values = set()
@@ -475,7 +463,7 @@ class URL:
         }
 
     def get_query_urls(self) -> Set[str]:
-        return {v for v in self.get_query_values() if is_url(v)}
+        return {v for v in self.get_query_values() if URL(v).is_url}
 
     def get_query_values(self) -> Set[str]:
         values = set()
