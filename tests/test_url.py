@@ -127,7 +127,7 @@ def test_get_path_original():
 
 
 def test_get_path_percent_decoded():
-    assert get_path_percent_decoded('http://domain.com/?index%3D1&lt;2') == '/?index=1&lt;2'
+    assert URL('http://domain.com/?index%3D1&lt;2').path_percent_decoded == '/?index=1&lt;2'
 
 
 def test_get_path_percent_encoded():

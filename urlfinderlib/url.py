@@ -64,10 +64,6 @@ def get_ascii_url(url: str) -> str:
     return url.encode('ascii', errors='ignore').decode()
 
 
-def get_path_percent_decoded(url: str) -> str:
-    return unquote(URL(url).path_original)
-
-
 def get_path_percent_encoded(url: str) -> str:
     """
     Line breaks are included in safe_chars because they should not exist in a valid URL.
