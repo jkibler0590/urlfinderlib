@@ -394,4 +394,4 @@ def test_url_permutations():
 
 
 def test_url_split_value():
-    assert URL('http://domain.com')._split_value == urlsplit('http://domain.com')
+    assert URL('http://domain.com').split_value == urlsplit('http://domain.com')
