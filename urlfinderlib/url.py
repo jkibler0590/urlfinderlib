@@ -64,10 +64,6 @@ def get_ascii_url(url: str) -> str:
     return url.encode('ascii', errors='ignore').decode()
 
 
-def get_fragment_dict(url) -> dict:
-    return parse_qs(urlparse(url).fragment)
-
-
 def get_netloc_idna(url: str) -> str:
     try:
         split_url = urlsplit(url)
@@ -545,8 +541,7 @@ class URL:
         values = set()
 
         for url in self.permutations:
-            fragment_dict = get_fragment_dict(url)
-            values |= {item for sublist in fragment_dict.values() for item in sublist}
+            values |= {item for sublist in self.fragment_dict.values() for item in sublist}
 
         return values
 
