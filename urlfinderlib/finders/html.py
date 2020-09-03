@@ -82,7 +82,10 @@ class HtmlSoupUrlFinder:
         )
 
         for token in token_iter:
-            if not any(s in token for s in srcset_values):
+            if srcset_values:
+                if not any(s in token for s in srcset_values):
+                    valid_urls += TextUrlFinder(token).find_urls()
+            else:
                 valid_urls += TextUrlFinder(token).find_urls()
 
         return set(valid_urls)
