@@ -271,16 +271,15 @@ class URL:
         self._netloc_unicode = None
         self._netlocs = None
 
-        self._paths = {
-            'all_decoded': get_path_all_decoded(self.value),
-            'original': get_path_original(self.value),
-            'html_decoded': get_path_html_decoded(self.value),
-            'html_encoded': get_path_html_encoded(self.value),
-            'percent_decoded': get_path_percent_decoded(self.value),
-            'percent_encoded': get_path_percent_encoded(self.value)
-        }
+        self._path_all_decoded = None
+        self._path_html_decoded = None
+        self._path_html_encoded = None
+        self._path_original = None
+        self._path_percent_decoded = None
+        self._path_percent_encoded = None
+        self._paths = None
 
-        self.original_url = build_url(self.split_value.scheme, self.netlocs['original'], self._paths['original'])
+        self.original_url = build_url(self.split_value.scheme, self.netlocs['original'], self.paths['original'])
 
         self._is_mandrillapp = 'mandrillapp.com' in self.value_lower and 'p' in self.query_dict
         self._is_proofpoint_v2 = 'urldefense.proofpoint.com/v2' in self.value_lower and 'u' in self.query_dict
@@ -379,6 +378,81 @@ class URL:
         return self._parse_value
 
     @property
+    def path_all_decoded(self):
+        if self._path_all_decoded is None:
+            self._path_all_decoded = html.unescape(unquote(self.path_original))
+
+        return self._path_all_decoded
+
+    @property
+    def path_html_decoded(self):
+        if self._path_html_decoded is None:
+            self._path_html_decoded = html.unescape(self.path_original)
+
+        return self._path_html_decoded
+
+    @property
+    def path_html_encoded(self):
+        if self._path_html_encoded is None:
+            self._path_html_encoded = html.escape(self.path_all_decoded)
+
+        return self._path_html_encoded
+
+    @property
+    def path_original(self):
+        if self._path_original is None:
+            path = self.split_value.path
+            query = self.split_value.query
+            fragment = self.split_value.fragment
+
+            if (path or query or fragment) and not path.startswith('/'):
+                path = f'/{path}'
+
+            if query:
+                path = f'{path}?{query}'
+
+            if fragment:
+                path = f'{path}#{fragment}'
+
+            self._path_original = path
+            
+        return self._path_original
+
+    @property
+    def path_percent_decoded(self):
+        if self._path_percent_decoded is None:
+            self._path_percent_decoded = unquote(self.path_original)
+
+        return self._path_percent_decoded
+
+    @property
+    def path_percent_encoded(self):
+        if self._path_percent_encoded is None:
+            """
+            Line breaks are included in safe_chars because they should not exist in a valid URL.
+            The tokenizer will sometimes create tokens that would be considered valid URLs if
+            these characters get %-encoded.
+            """
+            safe_chars = '/\n\r'
+            self._path_percent_encoded = quote(self.path_all_decoded, safe=safe_chars)
+
+        return self._path_percent_encoded
+
+    @property
+    def paths(self):
+        if self._paths is None:
+            self._paths = {
+                'all_decoded': self.path_all_decoded,
+                'original': self.path_original,
+                'html_decoded': self.path_html_decoded,
+                'html_encoded': self.path_html_encoded,
+                'percent_decoded': self.path_percent_decoded,
+                'percent_encoded': self.path_percent_encoded
+            }
+        
+        return self._paths
+
+    @property
     def query_dict(self):
         if self._query_dict is None:
             self._query_dict = parse_qs(self.parse_value.query)
@@ -420,7 +494,7 @@ class URL:
     def get_base64_values(self) -> Set[str]:
         values = set()
 
-        for match in base64_pattern.findall(self._paths['original']):
+        for match in base64_pattern.findall(self.paths['original']):
             if is_base64_ascii(match[0]):
                 values.add(base64.b64decode(f'{match[0]}===').decode('ascii'))
 
@@ -457,7 +531,7 @@ class URL:
         return {
             build_url(self.split_value.scheme, netloc, path) for netloc in
             self.netlocs.values() for path in
-            self._paths.values()
+            self.paths.values()
         }
 
     def get_query_urls(self) -> Set[str]:
