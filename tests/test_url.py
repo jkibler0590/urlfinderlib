@@ -105,8 +105,8 @@ def test_get_netloc_idna():
 
 
 def test_get_netloc_unicode():
-    assert get_netloc_unicode('http://xn--fa-hia.de') == 'faß.de'
-    assert get_netloc_unicode('http://dom[ain.com') == ''
+    assert URL('http://xn--fa-hia.de').netloc_unicode == 'faß.de'
+    assert URL('http://dom[ain.com').netloc_unicode == ''
 
 
 def test_get_path_all_decoded():

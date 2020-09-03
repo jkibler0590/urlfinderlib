@@ -64,21 +64,6 @@ def get_ascii_url(url: str) -> str:
     return url.encode('ascii', errors='ignore').decode()
 
 
-def get_netloc_unicode(url: str) -> str:
-    try:
-        split_url = urlsplit(url)
-    except ValueError:
-        return ''
-
-    if any(ord(char) >= 128 for char in split_url.netloc):
-        return split_url.netloc.lower()
-
-    try:
-        return idna.decode(split_url.netloc).lower()
-    except idna.core.IDNAError:
-        return split_url.netloc.encode('utf-8', errors='ignore').decode('idna').lower()
-
-
 def get_path_all_decoded(url: str) -> str:
     return html.unescape(unquote(get_path_original(url)))
 
