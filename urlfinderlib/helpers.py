@@ -4,6 +4,10 @@ import validators
 from urllib.parse import urlsplit
 
 
+def build_url(scheme: str, netloc: str, path: str) -> str:
+    return f'{scheme}://{netloc}{path}'
+
+
 def fix_possible_url(value: str) -> str:
     value = fix_possible_value(value)
     return value if validators.email(value) else prepend_missing_scheme(value)

@@ -1,6 +1,10 @@
 import urlfinderlib.helpers as helpers
 
 
+def test_build_url():
+    assert helpers.build_url('http', 'domain.com', '/index.php?test') == 'http://domain.com/index.php?test'
+
+
 def test_fix_possible_url():
     assert helpers.fix_possible_url('//domain.com\\index\u0000.html') == 'http://domain.com/index.html'
 

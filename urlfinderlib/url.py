@@ -16,10 +16,6 @@ import urlfinderlib.helpers as helpers
 base64_pattern = re.compile(r'(((aHR0c)|(ZnRw))[a-zA-Z0-9]+)')
 
 
-def build_url(scheme: str, netloc: str, path: str) -> str:
-    return f'{scheme}://{netloc}{path}'
-
-
 def decode_mandrillapp(url: str) -> str:
     query_dict = URL(url).query_dict
     decoded = base64.b64decode(f"{query_dict['p'][0]}===")
@@ -223,7 +219,7 @@ class URL:
             if not re.match(r'^[a-zA-Z0-9\-\.\:\@]{1,255}$', self.netloc_idna):
                 return False
 
-            encoded_url = build_url(self.split_value.scheme, self.netloc_idna, self.path_percent_encoded)
+            encoded_url = helpers.build_url(self.split_value.scheme, self.netloc_idna, self.path_percent_encoded)
             self._is_valid_format = bool(validators.url(encoded_url))
 
         return self._is_valid_format
@@ -288,7 +284,7 @@ class URL:
     @property
     def original_url(self):
         if self._original_url is None:
-            self._original_url = build_url(self.split_value.scheme, self.netlocs['original'], self.paths['original'])
+            self._original_url = helpers.build_url(self.split_value.scheme, self.netlocs['original'], self.paths['original'])
 
         return self._original_url
 
@@ -453,7 +449,7 @@ class URL:
 
     def get_permutations(self) -> Set[str]:
         return {
-            build_url(self.split_value.scheme, netloc, path) for netloc in
+            helpers.build_url(self.split_value.scheme, netloc, path) for netloc in
             self.netlocs.values() for path in
             self.paths.values()
         }

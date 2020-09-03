@@ -49,10 +49,6 @@ valid_url_formats = valid_urls + [
 invalid_url_formats = list(set(invalid_urls) - set(valid_url_formats))
 
 
-def test_build_url():
-    assert build_url('http', 'domain.com', '/index.php?test') == 'http://domain.com/index.php?test'
-
-
 def test_bytes_create():
     url = URL(b'http://domain.com')
     assert url.value == 'http://domain.com'
