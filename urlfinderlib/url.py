@@ -258,6 +258,7 @@ class URL:
         self._value_lower = None
 
         self._is_valid = None
+        self._is_valid_format = None
 
         self._parse_value = None
         self._split_value = None
@@ -370,6 +371,17 @@ class URL:
                 self._is_valid = (self.is_netloc_valid_tld or self.is_netloc_ipv4 or self.is_netloc_localhost) and is_valid_format(self.value)
 
         return self._is_valid
+
+    @property
+    def is_valid_format(self):
+        if self._is_valid_format is None:
+            if not re.match(r'^[a-zA-Z0-9\-\.\:\@]{1,255}$', self.netloc_idna):
+                return False
+
+            encoded_url = build_url(self.split_value.scheme, self.netloc_idna, self.path_percent_encoded)
+            self._is_valid_format = bool(validators.url(encoded_url))
+
+        return self._is_valid_format
 
     @property
     def netloc_idna(self):
