@@ -131,7 +131,7 @@ def test_get_path_percent_decoded():
 
 
 def test_get_path_percent_encoded():
-    assert get_path_percent_encoded('http://domain.com/?index=1&lt;2') == '/%3Findex%3D1%3C2'
+    assert URL('http://domain.com/?index=1&lt;2').path_percent_encoded == '/%3Findex%3D1%3C2'
 
 
 def test_get_query_dict():

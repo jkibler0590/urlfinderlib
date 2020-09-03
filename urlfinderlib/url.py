@@ -64,17 +64,6 @@ def get_ascii_url(url: str) -> str:
     return url.encode('ascii', errors='ignore').decode()
 
 
-def get_path_percent_encoded(url: str) -> str:
-    """
-    Line breaks are included in safe_chars because they should not exist in a valid URL.
-    The tokenizer will frequently create tokens that would be considered valid URLs if
-    these characters get %-encoded.
-    """
-    safe_chars = '/\n\r'
-
-    return quote(URL(url).path_all_decoded, safe=safe_chars)
-
-
 def get_query_dict(url) -> dict:
     return parse_qs(urlparse(url).query)
 
@@ -166,7 +155,7 @@ def is_valid_format(url: str) -> bool:
     if not re.match(r'^[a-zA-Z0-9\-\.\:\@]{1,255}$', netloc):
         return False
 
-    encoded_url = build_url(get_scheme(url), netloc, get_path_percent_encoded(url))
+    encoded_url = build_url(get_scheme(url), netloc, URL(url).path_percent_encoded)
     return bool(validators.url(encoded_url))
 
 
