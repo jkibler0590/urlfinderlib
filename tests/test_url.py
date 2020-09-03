@@ -303,10 +303,10 @@ def test_url_decode_outlook_safelink():
 def test_url_decode_proofpoint_v2():
     url = URL('https://urldefense.proofpoint.com/v2/url?u=http-3A__domain.com')
     assert url.is_proofpoint_v2 is True
-    assert {URL('http://domain.com')} == url.child_urls
+    assert url.child_urls == {URL('http://domain.com')}
 
-    keyerror_url = 'https://urldefense.proofpoint.com/v2/url'
-    assert decode_proofpoint_v2(keyerror_url) == ''
+    keyerror_url = URL('https://urldefense.proofpoint.com/v2/url')
+    assert keyerror_url.decode_proofpoint_v2() == ''
 
 
 def test_url_get_fragment_values():

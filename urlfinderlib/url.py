@@ -16,17 +16,6 @@ import urlfinderlib.helpers as helpers
 base64_pattern = re.compile(r'(((aHR0c)|(ZnRw))[a-zA-Z0-9]+)')
 
 
-def decode_proofpoint_v2(url: str) -> str:
-    query_dict = URL(url).query_dict
-
-    try:
-        query_url = query_dict['u'][0]
-        possible_url = query_url.replace('-3A', ':').replace('_', '/').replace('-2D', '-')
-        return possible_url if URL(possible_url).is_url else ''
-    except KeyError:
-        return ''
-
-
 def get_all_parent_and_child_urls(urls: Union[Set['URL'], 'URL'], ret=None) -> Set[str]:
     if ret is None:
         ret = set()
@@ -417,7 +406,7 @@ class URL:
                 child_urls.add(decoded_url)
 
         if self.is_proofpoint_v2:
-            child_urls.add(decode_proofpoint_v2(self.value))
+            child_urls.add(self.decode_proofpoint_v2())
 
         return {URL(u) for u in child_urls}
 
@@ -461,4 +450,12 @@ class URL:
         except json.JSONDecodeError:
             return ''
         except UnicodeDecodeError:
+            return ''
+
+    def decode_proofpoint_v2(self) -> str:
+        try:
+            query_url = self.query_dict['u'][0]
+            possible_url = query_url.replace('-3A', ':').replace('_', '/').replace('-2D', '-')
+            return possible_url if URL(possible_url).is_url else ''
+        except KeyError:
             return ''
