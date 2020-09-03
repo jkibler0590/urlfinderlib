@@ -233,10 +233,10 @@ def test_is_url_ascii():
 
 def test_is_valid_format():
     for url in valid_url_formats:
-        assert is_valid_format(url) is True
+        assert URL(url).is_valid_format is True
 
     for url in invalid_url_formats:
-        assert is_valid_format(url) is False
+        assert URL(url).is_valid_format is False
 
 
 def test_remove_partial_urls():

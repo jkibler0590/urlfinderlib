@@ -94,27 +94,12 @@ def is_url(url: str) -> bool:
     if '.' not in url or ':' not in url or '/' not in url:
         return False
 
-    return (URL(url).is_netloc_valid_tld or URL(url).is_netloc_ipv4 or URL(url).is_netloc_localhost) and is_valid_format(url)
+    return (URL(url).is_netloc_valid_tld or URL(url).is_netloc_ipv4 or URL(url).is_netloc_localhost) and URL(url).is_valid_format
 
 
 def is_url_ascii(url: str) -> bool:
     url = url.encode('ascii', errors='ignore').decode()
     return is_url(url)
-
-
-def is_valid_format(url: str) -> bool:
-    if not url:
-        return False
-    elif isinstance(url, bytes):
-        url = url.decode('utf-8', errors='ignore')
-
-    netloc = URL(url).netloc_idna
-
-    if not re.match(r'^[a-zA-Z0-9\-\.\:\@]{1,255}$', netloc):
-        return False
-
-    encoded_url = build_url(URL(url).split_value.scheme, netloc, URL(url).path_percent_encoded)
-    return bool(validators.url(encoded_url))
 
 
 def remove_partial_urls(urls: Set[str]) -> Set[str]:
