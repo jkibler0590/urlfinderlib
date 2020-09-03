@@ -267,6 +267,8 @@ class URL:
         self._netloc_unicode = None
         self._netlocs = None
 
+        self._is_netloc_ipv4 = None
+
         self._path_all_decoded = None
         self._path_html_decoded = None
         self._path_html_encoded = None
@@ -317,6 +319,16 @@ class URL:
             self._is_mandrillapp = 'mandrillapp.com' in self.value_lower and 'p' in self.query_dict
 
         return self._is_mandrillapp
+
+    @property
+    def is_netloc_ipv4(self):
+        if self._is_netloc_ipv4 is None:
+            if not self.split_value.hostname:
+                self._is_netloc_ipv4 = False
+            else:
+                self._is_netloc_ipv4 = bool(validators.ipv4(self.split_value.hostname))
+
+        return self._is_netloc_ipv4
 
     @property
     def is_proofpoint_v2(self):
