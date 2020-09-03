@@ -21,7 +21,7 @@ def build_url(scheme: str, netloc: str, path: str) -> str:
 
 
 def decode_mandrillapp(url: str) -> str:
-    query_dict = get_query_dict(url)
+    query_dict = URL(url).query_dict
     decoded = base64.b64decode(f"{query_dict['p'][0]}===")
 
     try:
@@ -36,7 +36,7 @@ def decode_mandrillapp(url: str) -> str:
 
 
 def decode_proofpoint_v2(url: str) -> str:
-    query_dict = get_query_dict(url)
+    query_dict = URL(url).query_dict
 
     try:
         query_url = query_dict['u'][0]
@@ -62,10 +62,6 @@ def get_all_parent_and_child_urls(urls: Union[Set['URL'], 'URL'], ret=None) -> S
 
 def get_ascii_url(url: str) -> str:
     return url.encode('ascii', errors='ignore').decode()
-
-
-def get_query_dict(url) -> dict:
-    return parse_qs(urlparse(url).query)
 
 
 def get_scheme(url: str) -> str:
@@ -538,7 +534,6 @@ class URL:
         values = set()
 
         for url in self.permutations:
-            query_dict = get_query_dict(url)
-            values |= {item for sublist in query_dict.values() for item in sublist}
+            values |= {item for sublist in URL(url).query_dict.values() for item in sublist}
 
         return values
