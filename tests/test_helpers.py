@@ -18,6 +18,10 @@ def test_fix_slashes():
     assert helpers.fix_slashes('http:/domain.com/index.html') == 'http://domain.com/index.html'
 
 
+def test_get_ascii_url():
+    assert helpers.get_ascii_url('http://d😉o😉m😉a😉i😉n😉.😉c😉o😉m') == 'http://domain.com'
+
+
 def test_is_base64_ascii():
     assert helpers.is_base64_ascii('asdf') is False
     assert helpers.is_base64_ascii('faß') is False

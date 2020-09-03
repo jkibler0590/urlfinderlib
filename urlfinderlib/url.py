@@ -30,10 +30,6 @@ def get_all_parent_and_child_urls(urls: Union[Set['URL'], 'URL'], ret=None) -> S
     return ret
 
 
-def get_ascii_url(url: str) -> str:
-    return url.encode('ascii', errors='ignore').decode()
-
-
 def get_valid_urls(possible_urls: Set[str]) -> Set[str]:
     valid_urls = set()
 
@@ -42,7 +38,7 @@ def get_valid_urls(possible_urls: Set[str]) -> Set[str]:
         if URL(possible_url).is_url:
             valid_urls.add(possible_url)
         elif URL(possible_url).is_url_ascii:
-            valid_urls.add(get_ascii_url(possible_url))
+            valid_urls.add(helpers.get_ascii_url(possible_url))
 
     return remove_partial_urls(valid_urls)
 

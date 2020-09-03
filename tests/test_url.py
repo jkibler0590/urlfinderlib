@@ -84,10 +84,6 @@ def test_get_all_parent_and_child_urls():
     assert get_all_parent_and_child_urls(urls) == expected_urls
 
 
-def test_get_ascii_url():
-    assert get_ascii_url('http://d😉o😉m😉a😉i😉n😉.😉c😉o😉m') == 'http://domain.com'
-
-
 def test_get_fragment_dict():
     url = URL('http://domain.com/index.php#one=1&two=2&three=3')
     assert url.fragment_dict == {'one': ['1'], 'two': ['2'], 'three': ['3']}

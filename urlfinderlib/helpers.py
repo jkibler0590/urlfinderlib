@@ -31,6 +31,10 @@ def fix_slashes(value: str) -> str:
     return value
 
 
+def get_ascii_url(url: str) -> str:
+    return url.encode('ascii', errors='ignore').decode()
+
+
 def is_base64_ascii(value: str) -> bool:
     try:
         base64.b64decode(f'{value}===').decode('ascii')
