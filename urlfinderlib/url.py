@@ -71,15 +71,10 @@ def get_valid_urls(possible_urls: Set[str]) -> Set[str]:
     for possible_url in possible_urls:
         if URL(possible_url).is_url:
             valid_urls.add(possible_url)
-        elif is_url_ascii(possible_url):
+        elif URL(possible_url).is_url_ascii:
             valid_urls.add(get_ascii_url(possible_url))
 
     return remove_partial_urls(valid_urls)
-
-
-def is_url_ascii(url: str) -> bool:
-    url = url.encode('ascii', errors='ignore').decode()
-    return URL(url).is_url
 
 
 def remove_partial_urls(urls: Set[str]) -> Set[str]:
@@ -99,6 +94,7 @@ class URL:
         self._value_lower = None
 
         self._is_url = None
+        self._is_url_ascii = None
         self._is_valid_format = None
 
         self._parse_value = None
@@ -212,6 +208,14 @@ class URL:
                 self._is_url = (self.is_netloc_valid_tld or self.is_netloc_ipv4 or self.is_netloc_localhost) and self.is_valid_format
 
         return self._is_url
+
+    @property
+    def is_url_ascii(self):
+        if self._is_url_ascii is None:
+            url = self.value.encode('ascii', errors='ignore').decode()
+            self._is_url_ascii = URL(url).is_url
+
+        return self._is_url_ascii
 
     @property
     def is_valid_format(self):

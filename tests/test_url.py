@@ -222,7 +222,7 @@ def test_is_url():
 
 def test_is_url_ascii():
     assert URL('http://d😉o😉m😉a😉i😉n😉.😉c😉o😉m').is_url is False
-    assert is_url_ascii('http://d😉o😉m😉a😉i😉n😉.😉c😉o😉m') is True
+    assert URL('http://d😉o😉m😉a😉i😉n😉.😉c😉o😉m').is_url_ascii is True
 
 
 def test_is_valid_format():
