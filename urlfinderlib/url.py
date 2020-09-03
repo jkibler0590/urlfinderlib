@@ -64,13 +64,6 @@ def get_ascii_url(url: str) -> str:
     return url.encode('ascii', errors='ignore').decode()
 
 
-def get_scheme(url: str) -> str:
-    try:
-        return urlsplit(url).scheme
-    except ValueError:
-        return ''
-
-
 def get_valid_urls(possible_urls: Set[str]) -> Set[str]:
     valid_urls = set()
 
@@ -151,7 +144,7 @@ def is_valid_format(url: str) -> bool:
     if not re.match(r'^[a-zA-Z0-9\-\.\:\@]{1,255}$', netloc):
         return False
 
-    encoded_url = build_url(get_scheme(url), netloc, URL(url).path_percent_encoded)
+    encoded_url = build_url(URL(url).split_value.scheme, netloc, URL(url).path_percent_encoded)
     return bool(validators.url(encoded_url))
 
 

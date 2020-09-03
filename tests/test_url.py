@@ -140,9 +140,9 @@ def test_get_query_dict():
 
 
 def test_get_scheme():
-    assert get_scheme('https://domain.com') == 'https'
-    assert get_scheme('HTTPS://domain.com') == 'https'
-    assert get_scheme('http://dom[ain.com') == ''
+    assert URL('https://domain.com').split_value.scheme == 'https'
+    assert URL('HTTPS://domain.com').split_value.scheme == 'https'
+    assert URL('http://dom[ain.com').split_value.scheme == ''
 
 
 def test_get_valid_urls():
