@@ -98,10 +98,10 @@ def test_get_fragment_dict():
 
 
 def test_get_netloc_idna():
-    assert get_netloc_idna('http://faß.de') == 'xn--fa-hia.de'
-    assert get_netloc_idna('http://DOMAIN.COM') == 'domain.com'
-    assert get_netloc_idna('http://dom[ain.com') == ''
-    assert get_netloc_idna('http://domain\x8a.com') == ''
+    assert URL('http://faß.de').netloc_idna == 'xn--fa-hia.de'
+    assert URL('http://DOMAIN.COM').netloc_idna == 'domain.com'
+    assert URL('http://dom[ain.com').netloc_idna == ''
+    assert URL('http://domain\x8a.com').netloc_idna == ''
 
 
 def test_get_netloc_unicode():

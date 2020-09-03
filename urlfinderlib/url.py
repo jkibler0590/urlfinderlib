@@ -64,24 +64,6 @@ def get_ascii_url(url: str) -> str:
     return url.encode('ascii', errors='ignore').decode()
 
 
-def get_netloc_idna(url: str) -> str:
-    try:
-        split_url = urlsplit(url)
-    except ValueError:
-        return ''
-
-    if all(ord(char) < 128 for char in split_url.netloc):
-        return split_url.netloc.lower()
-
-    try:
-        return idna.encode(split_url.netloc).decode('utf-8').lower()
-    except idna.core.IDNAError:
-        try:
-            return split_url.netloc.encode('idna').decode('utf-8', errors='ignore').lower()
-        except UnicodeError:
-            return ''
-
-
 def get_netloc_unicode(url: str) -> str:
     try:
         split_url = urlsplit(url)
@@ -232,7 +214,7 @@ def is_valid_format(url: str) -> bool:
     elif isinstance(url, bytes):
         url = url.decode('utf-8', errors='ignore')
 
-    netloc = get_netloc_idna(url)
+    netloc = URL(url).netloc_idna
 
     if not re.match(r'^[a-zA-Z0-9\-\.\:\@]{1,255}$', netloc):
         return False
@@ -539,7 +521,10 @@ class URL:
     @property
     def split_value(self):
         if self._split_value is None:
-            self._split_value = urlsplit(self.value)
+            try:
+                self._split_value = urlsplit(self.value)
+            except ValueError:
+                self._split_value = urlsplit('')
 
         return self._split_value
 
