@@ -7,6 +7,7 @@ import re
 import tld
 import validators
 
+from collections import UserList
 from typing import Set, Union
 from urllib.parse import parse_qs, quote, unquote, urlparse, urlsplit
 
@@ -16,18 +17,20 @@ import urlfinderlib.helpers as helpers
 base64_pattern = re.compile(r'(((aHR0c)|(ZnRw))[a-zA-Z0-9]+)')
 
 
-def get_all_parent_and_child_urls(urls: Union[Set['URL'], 'URL'], ret=None) -> Set[str]:
-    if ret is None:
-        ret = set()
+class URLList(UserList):
+    def get_all_urls(self):
+        if self.data:
+            all_urls = []
+            stack = self.data[:]
+            while stack:
+                url = stack.pop()
+                all_urls.append(url.value)
+                for child_url in url.child_urls:
+                    stack.append(child_url)
 
-    if isinstance(urls, URL):
-        urls = {urls}
-
-    for url in urls:
-        ret.add(url.original_url)
-        ret |= get_all_parent_and_child_urls(url.child_urls)
-
-    return ret
+            return set(all_urls)
+        
+        return set()
 
 
 def get_valid_urls(possible_urls: Set[str]) -> Set[str]:
@@ -392,19 +395,21 @@ class URL:
         return values
 
     def get_child_urls(self) -> Set['URL']:
-        child_urls = self.get_query_urls()
-        child_urls |= self.get_fragment_urls()
-        child_urls |= self.get_base64_urls()
+        child_urls = []
+
+        child_urls += self.get_query_urls()
+        child_urls += self.get_fragment_urls()
+        child_urls += self.get_base64_urls()
 
         if self.is_mandrillapp:
             decoded_url = self.decode_mandrillapp()
             if decoded_url:
-                child_urls.add(decoded_url)
+                child_urls.append(decoded_url)
 
         if self.is_proofpoint_v2:
-            child_urls.add(self.decode_proofpoint_v2())
+            child_urls.append(self.decode_proofpoint_v2())
 
-        return {URL(u) for u in child_urls}
+        return URLList([URL(u) for u in child_urls])
 
     def get_fragment_urls(self) -> Set[str]:
         return {v for v in self.get_fragment_values() if URL(v).is_url}
