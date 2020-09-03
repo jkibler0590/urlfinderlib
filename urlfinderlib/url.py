@@ -257,6 +257,8 @@ class URL:
         self.value = value.rstrip('/')
         self._value_lower = None
 
+        self._is_valid = None
+
         self._parse_value = None
         self._split_value = None
         self._query_dict = None
@@ -358,6 +360,16 @@ class URL:
             self._is_proofpoint_v2 = 'urldefense.proofpoint.com/v2' in self.value_lower and 'u' in self.query_dict
 
         return self._is_proofpoint_v2
+
+    @property
+    def is_valid(self):
+        if self._is_valid is None:
+            if '.' not in self.value or ':' not in self.value or '/' not in self.value:
+                self._is_valid = False
+            else:
+                self._is_valid = (self.is_netloc_valid_tld or self.is_netloc_ipv4 or self.is_netloc_localhost) and is_valid_format(self.value)
+
+        return self._is_valid
 
     @property
     def netloc_idna(self):
