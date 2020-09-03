@@ -62,32 +62,10 @@ def get_all_parent_and_child_urls(urls: Union[Set['URL'], 'URL'], ret=None) -> S
 
 def get_ascii_url(url: str) -> str:
     return url.encode('ascii', errors='ignore').decode()
-    
-
-def get_path_original(url: str) -> str:
-    try:
-        split_url = urlsplit(url)
-    except ValueError:
-        return ''
-
-    path = split_url.path
-    query = split_url.query
-    fragment = split_url.fragment
-
-    if (path or query or fragment) and not path.startswith('/'):
-        path = f'/{path}'
-
-    if query:
-        path = f'{path}?{query}'
-
-    if fragment:
-        path = f'{path}#{fragment}'
-
-    return path
 
 
 def get_path_percent_decoded(url: str) -> str:
-    return unquote(get_path_original(url))
+    return unquote(URL(url).path_original)
 
 
 def get_path_percent_encoded(url: str) -> str:
