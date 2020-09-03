@@ -346,7 +346,8 @@ class URL:
                 except UnicodeError:
                     self._netloc_idna = ''
 
-        self._netloc_idna = ''
+            self._netloc_idna = ''
+
         return self._netloc_idna
 
     @property
@@ -370,7 +371,8 @@ class URL:
                 self._netloc_unicode = self.split_value.netloc.encode('utf-8', errors='ignore').decode('idna').lower()
                 return self._netloc_unicode
 
-        self._netloc_unicode = ''
+            self._netloc_unicode = ''
+            
         return self._netloc_unicode
 
     @property
