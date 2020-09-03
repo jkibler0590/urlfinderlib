@@ -279,7 +279,7 @@ class URL:
         self._path_percent_encoded = None
         self._paths = None
 
-        self.original_url = build_url(self.split_value.scheme, self.netlocs['original'], self.paths['original'])
+        self._original_url = None
 
         self._is_mandrillapp = 'mandrillapp.com' in self.value_lower and 'p' in self.query_dict
         self._is_proofpoint_v2 = 'urldefense.proofpoint.com/v2' in self.value_lower and 'u' in self.query_dict
@@ -369,6 +369,13 @@ class URL:
             }
 
         return self._netlocs
+
+    @property
+    def original_url(self):
+        if self._original_url is None:
+            self._original_url = build_url(self.split_value.scheme, self.netlocs['original'], self.paths['original'])
+
+        return self._original_url
 
     @property
     def parse_value(self):
