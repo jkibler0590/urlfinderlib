@@ -77,14 +77,6 @@ def get_valid_urls(possible_urls: Set[str]) -> Set[str]:
     return remove_partial_urls(valid_urls)
 
 
-def is_base64_ascii(value: str) -> bool:
-    try:
-        base64.b64decode(f'{value}===').decode('ascii')
-        return True
-    except:
-        return False
-
-
 def is_url_ascii(url: str) -> bool:
     url = url.encode('ascii', errors='ignore').decode()
     return URL(url).is_url
@@ -424,7 +416,7 @@ class URL:
         values = set()
 
         for match in base64_pattern.findall(self.paths['original']):
-            if is_base64_ascii(match[0]):
+            if helpers.is_base64_ascii(match[0]):
                 values.add(base64.b64decode(f'{match[0]}===').decode('ascii'))
 
         return values

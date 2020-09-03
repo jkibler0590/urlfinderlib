@@ -1,3 +1,4 @@
+import base64
 import validators
 
 from urllib.parse import urlsplit
@@ -24,6 +25,14 @@ def fix_slashes(value: str) -> str:
         return value.replace(':/', '://')
 
     return value
+
+
+def is_base64_ascii(value: str) -> bool:
+    try:
+        base64.b64decode(f'{value}===').decode('ascii')
+        return True
+    except:
+        return False
 
 
 def prepend_missing_scheme(value: str) -> str:

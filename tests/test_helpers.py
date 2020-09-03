@@ -14,6 +14,12 @@ def test_fix_slashes():
     assert helpers.fix_slashes('http:/domain.com/index.html') == 'http://domain.com/index.html'
 
 
+def test_is_base64_ascii():
+    assert helpers.is_base64_ascii('asdf') is False
+    assert helpers.is_base64_ascii('faß') is False
+    assert helpers.is_base64_ascii('YXNkZgo=') is True
+
+
 def test_prepend_missing_scheme():
     assert helpers.prepend_missing_scheme('domain.com') == 'domain.com'
     assert helpers.prepend_missing_scheme('domain.com/index.html') == 'http://domain.com/index.html'
