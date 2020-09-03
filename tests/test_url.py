@@ -284,55 +284,71 @@ def test_url_get_query_values():
     assert url.get_query_values() == {'1', '2', '3'}
 
 
+def test_url_less_than():
+    assert URL('http://domain.com') < URL('http://domain2.com')
+    assert (URL('http://domain.com') < 'http://domain2.com') is False
+
+
 def test_url_netlocs():
     idna_url = URL('http://xn--n28h.com')
-    assert idna_url.netlocs['idna'] == 'xn--n28h.com'
-    assert idna_url.netlocs['original'] == 'xn--n28h.com'
-    assert idna_url.netlocs['unicode'] == '😉.com'
+    assert idna_url.netloc_idna == 'xn--n28h.com'
+    assert idna_url.netloc_original == 'xn--n28h.com'
+    assert idna_url.netloc_unicode == '😉.com'
 
     unicode_url = URL('http://😉.com')
-    assert unicode_url.netlocs['idna'] == 'xn--n28h.com'
-    assert unicode_url.netlocs['original'] == '😉.com'
-    assert unicode_url.netlocs['unicode'] == '😉.com'
+    assert unicode_url.netloc_idna == 'xn--n28h.com'
+    assert unicode_url.netloc_original == '😉.com'
+    assert unicode_url.netloc_unicode == '😉.com'
 
     url = URL('http://DOMAIN.COM')
-    assert url.netlocs['idna'] == 'domain.com'
-    assert url.netlocs['original'] == 'domain.com'
-    assert url.netlocs['unicode'] == 'domain.com'
+    assert url.netloc_idna == 'domain.com'
+    assert url.netloc_original == 'domain.com'
+    assert url.netloc_unicode == 'domain.com'
+
+
+def test_url_netloc_unicode_twice():
+    """This test is purely for code coverage."""
+    url = URL('http://domain.com')
+    assert url.netloc_unicode == 'domain.com'
+    assert url.netloc_unicode == 'domain.com'
+
+
+def test_url_original_url():
+    assert URL('http://domain.com/test_path?test_query=1<2#😉').original_url == 'http://domain.com/test_path?test_query=1<2#😉'
 
 
 def test_url_paths():
     decoded_url = URL('http://domain.com/test_path?test_query=1<2#😉')
-    assert decoded_url.paths['all_decoded'] == '/test_path?test_query=1<2#😉'
-    assert decoded_url.paths['html_decoded'] == '/test_path?test_query=1<2#😉'
-    assert decoded_url.paths['html_encoded'] == '/test_path?test_query=1&lt;2#😉'
-    assert decoded_url.paths['original'] == '/test_path?test_query=1<2#😉'
-    assert decoded_url.paths['percent_decoded'] == '/test_path?test_query=1<2#😉'
-    assert decoded_url.paths['percent_encoded'] == '/test_path%3Ftest_query%3D1%3C2%23%F0%9F%98%89'
+    assert decoded_url.path_all_decoded == '/test_path?test_query=1<2#😉'
+    assert decoded_url.path_html_decoded == '/test_path?test_query=1<2#😉'
+    assert decoded_url.path_html_encoded == '/test_path?test_query=1&lt;2#😉'
+    assert decoded_url.path_original == '/test_path?test_query=1<2#😉'
+    assert decoded_url.path_percent_decoded == '/test_path?test_query=1<2#😉'
+    assert decoded_url.path_percent_encoded == '/test_path%3Ftest_query%3D1%3C2%23%F0%9F%98%89'
 
     html_encoded_url = URL('http://domain.com/test_path?test_query=1&lt;2#😉')
-    assert html_encoded_url.paths['all_decoded'] == '/test_path?test_query=1<2#😉'
-    assert html_encoded_url.paths['html_decoded'] == '/test_path?test_query=1<2#😉'
-    assert html_encoded_url.paths['html_encoded'] == '/test_path?test_query=1&lt;2#😉'
-    assert html_encoded_url.paths['original'] == '/test_path?test_query=1&lt;2#😉'
-    assert html_encoded_url.paths['percent_decoded'] == '/test_path?test_query=1&lt;2#😉'
-    assert html_encoded_url.paths['percent_encoded'] == '/test_path%3Ftest_query%3D1%3C2%23%F0%9F%98%89'
+    assert html_encoded_url.path_all_decoded == '/test_path?test_query=1<2#😉'
+    assert html_encoded_url.path_html_decoded == '/test_path?test_query=1<2#😉'
+    assert html_encoded_url.path_html_encoded == '/test_path?test_query=1&lt;2#😉'
+    assert html_encoded_url.path_original == '/test_path?test_query=1&lt;2#😉'
+    assert html_encoded_url.path_percent_decoded == '/test_path?test_query=1&lt;2#😉'
+    assert html_encoded_url.path_percent_encoded == '/test_path%3Ftest_query%3D1%3C2%23%F0%9F%98%89'
 
     percent_encoded_url = URL('http://domain.com/test_path%3Ftest_query%3D1%3C2%23%F0%9F%98%89')
-    assert percent_encoded_url.paths['all_decoded'] == '/test_path?test_query=1<2#😉'
-    assert percent_encoded_url.paths['html_decoded'] == '/test_path%3Ftest_query%3D1%3C2%23%F0%9F%98%89'
-    assert percent_encoded_url.paths['html_encoded'] == '/test_path?test_query=1&lt;2#😉'
-    assert percent_encoded_url.paths['original'] == '/test_path%3Ftest_query%3D1%3C2%23%F0%9F%98%89'
-    assert percent_encoded_url.paths['percent_decoded'] == '/test_path?test_query=1<2#😉'
-    assert percent_encoded_url.paths['percent_encoded'] == '/test_path%3Ftest_query%3D1%3C2%23%F0%9F%98%89'
+    assert percent_encoded_url.path_all_decoded == '/test_path?test_query=1<2#😉'
+    assert percent_encoded_url.path_html_decoded == '/test_path%3Ftest_query%3D1%3C2%23%F0%9F%98%89'
+    assert percent_encoded_url.path_html_encoded == '/test_path?test_query=1&lt;2#😉'
+    assert percent_encoded_url.path_original == '/test_path%3Ftest_query%3D1%3C2%23%F0%9F%98%89'
+    assert percent_encoded_url.path_percent_decoded == '/test_path?test_query=1<2#😉'
+    assert percent_encoded_url.path_percent_encoded == '/test_path%3Ftest_query%3D1%3C2%23%F0%9F%98%89'
 
     mixed_encoded_url = URL('http://domain.com/test_path%3Ftest_query%3D1&lt;2%23%F0%9F%98%89')
-    assert mixed_encoded_url.paths['all_decoded'] == '/test_path?test_query=1<2#😉'
-    assert mixed_encoded_url.paths['html_decoded'] == '/test_path%3Ftest_query%3D1<2%23%F0%9F%98%89'
-    assert mixed_encoded_url.paths['html_encoded'] == '/test_path?test_query=1&lt;2#😉'
-    assert mixed_encoded_url.paths['original'] == '/test_path%3Ftest_query%3D1&lt;2%23%F0%9F%98%89'
-    assert mixed_encoded_url.paths['percent_decoded'] == '/test_path?test_query=1&lt;2#😉'
-    assert mixed_encoded_url.paths['percent_encoded'] == '/test_path%3Ftest_query%3D1%3C2%23%F0%9F%98%89'
+    assert mixed_encoded_url.path_all_decoded == '/test_path?test_query=1<2#😉'
+    assert mixed_encoded_url.path_html_decoded == '/test_path%3Ftest_query%3D1<2%23%F0%9F%98%89'
+    assert mixed_encoded_url.path_html_encoded == '/test_path?test_query=1&lt;2#😉'
+    assert mixed_encoded_url.path_original == '/test_path%3Ftest_query%3D1&lt;2%23%F0%9F%98%89'
+    assert mixed_encoded_url.path_percent_decoded == '/test_path?test_query=1&lt;2#😉'
+    assert mixed_encoded_url.path_percent_encoded == '/test_path%3Ftest_query%3D1%3C2%23%F0%9F%98%89'
 
 
 def test_url_permutations():
@@ -359,6 +375,12 @@ def test_urllist_append():
     urllist.append('http://d😉o😉m😉a😉i😉n😉2😉.😉c😉o😉m'),
     urllist.append('email@domain3.com')
     assert urllist == ['http://domain.com', 'http://domain2.com']
+
+
+def test_urllist_equal():
+    assert URLList(['http://domain.com', 'http://domain2.com']) == ['http://domain2.com', 'http://domain.com']
+    assert URLList(['http://domain.com', 'http://domain2.com']) == URLList(['http://domain2.com', 'http://domain.com'])
+    assert URLList(['http://domain.com']) != 'http://domain.com'
 
 
 def test_urllist_get_all_urls_double_nested():

@@ -254,8 +254,6 @@ class URL:
                 self._netloc_unicode = self.split_value.netloc.encode('utf-8', errors='ignore').decode('idna').lower()
                 return self._netloc_unicode
 
-            self._netloc_unicode = ''
-            
         return self._netloc_unicode
 
     @property
@@ -272,7 +270,7 @@ class URL:
     @property
     def original_url(self):
         if self._original_url is None:
-            self._original_url = helpers.build_url(self.split_value.scheme, self.netlocs['original'], self.paths['original'])
+            self._original_url = helpers.build_url(self.split_value.scheme, self.netloc_original, self.path_original)
 
         return self._original_url
 
@@ -403,7 +401,7 @@ class URL:
     def get_base64_values(self) -> Set[str]:
         values = set()
 
-        for match in base64_pattern.findall(self.paths['original']):
+        for match in base64_pattern.findall(self.path_original):
             if helpers.is_base64_ascii(match[0]):
                 values.add(base64.b64decode(f'{match[0]}===').decode('ascii'))
 
