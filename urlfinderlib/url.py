@@ -281,7 +281,8 @@ class URL:
 
         self._original_url = None
 
-        self._is_mandrillapp = 'mandrillapp.com' in self.value_lower and 'p' in self.query_dict
+        self._is_mandrillapp = None
+        #self._is_mandrillapp = 'mandrillapp.com' in self.value_lower and 'p' in self.query_dict
         self._is_proofpoint_v2 = 'urldefense.proofpoint.com/v2' in self.value_lower and 'u' in self.query_dict
 
         self._child_urls = None
@@ -314,6 +315,13 @@ class URL:
             self._fragment_dict = parse_qs(self.parse_value.fragment)
 
         return self._fragment_dict
+
+    @property
+    def is_mandrillapp(self):
+        if self._is_mandrillapp is None:
+            self._is_mandrillapp = 'mandrillapp.com' in self.value_lower and 'p' in self.query_dict
+
+        return self._is_mandrillapp
 
     @property
     def netloc_idna(self):
@@ -512,7 +520,7 @@ class URL:
         child_urls |= self.get_fragment_urls()
         child_urls |= self.get_base64_urls()
 
-        if self._is_mandrillapp:
+        if self.is_mandrillapp:
             decoded_url = decode_mandrillapp(self.value)
             if decoded_url:
                 child_urls.add(decoded_url)
