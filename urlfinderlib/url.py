@@ -16,21 +16,6 @@ import urlfinderlib.helpers as helpers
 base64_pattern = re.compile(r'(((aHR0c)|(ZnRw))[a-zA-Z0-9]+)')
 
 
-def decode_mandrillapp(url: str) -> str:
-    query_dict = URL(url).query_dict
-    decoded = base64.b64decode(f"{query_dict['p'][0]}===")
-
-    try:
-        outer_json = json.loads(decoded)
-        inner_json = json.loads(outer_json['p'])
-        possible_url = inner_json['url']
-        return possible_url if URL(possible_url).is_url else ''
-    except json.JSONDecodeError:
-        return ''
-    except UnicodeDecodeError:
-        return ''
-
-
 def decode_proofpoint_v2(url: str) -> str:
     query_dict = URL(url).query_dict
 
@@ -427,7 +412,7 @@ class URL:
         child_urls |= self.get_base64_urls()
 
         if self.is_mandrillapp:
-            decoded_url = decode_mandrillapp(self.value)
+            decoded_url = self.decode_mandrillapp()
             if decoded_url:
                 child_urls.add(decoded_url)
 
@@ -464,3 +449,16 @@ class URL:
             values |= {item for sublist in URL(url).query_dict.values() for item in sublist}
 
         return values
+
+    def decode_mandrillapp(self) -> str:
+        decoded = base64.b64decode(f'{self.query_dict["p"][0]}===')
+
+        try:
+            outer_json = json.loads(decoded)
+            inner_json = json.loads(outer_json['p'])
+            possible_url = inner_json['url']
+            return possible_url if URL(possible_url).is_url else ''
+        except json.JSONDecodeError:
+            return ''
+        except UnicodeDecodeError:
+            return ''
