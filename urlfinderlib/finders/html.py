@@ -12,7 +12,7 @@ import urlfinderlib.tokenizer as tokenizer
 
 from .text import TextUrlFinder
 from urlfinderlib import is_url
-from urlfinderlib.url import get_valid_urls
+from urlfinderlib.url import URLList
 
 warnings.filterwarnings('ignore', category=UserWarning, module='bs4')
 
@@ -32,11 +32,11 @@ class HtmlUrlFinder:
             self._soups.append(BeautifulSoup(unquoted_utf8_string, features='html.parser'))
 
     def find_urls(self) -> Set[str]:
-        urls = set()
+        urls = URLList()
         for soup in self._soups:
-            urls |= HtmlSoupUrlFinder(soup, base_url=self._base_url).find_urls()
+            urls += HtmlSoupUrlFinder(soup, base_url=self._base_url).find_urls()
 
-        return urls
+        return set(urls)
 
 
 class HtmlSoupUrlFinder:
@@ -49,14 +49,20 @@ class HtmlSoupUrlFinder:
         possible_urls = set()
         possible_urls |= self._get_tag_attribute_values()
         possible_urls |= {urljoin(self._base_url, u) for u in self._get_base_url_eligible_values()}
-        possible_urls |= self._find_document_write_urls()
-        possible_urls |= self._find_visible_urls()
 
         srcset_values = self._get_srcset_values()
         possible_urls = {u for u in possible_urls if not any(srcset_value in u for srcset_value in srcset_values)}
         possible_urls |= {urljoin(self._base_url, u) for u in srcset_values}
 
-        valid_urls = get_valid_urls(possible_urls)
+        valid_urls = URLList()
+        for possible_url in possible_urls:
+            valid_urls.append(helpers.fix_possible_url(possible_url))
+
+        for document_write_url in self._find_document_write_urls():
+            valid_urls.append(document_write_url)
+
+        for visible_url in self._find_visible_urls():
+            valid_urls.append(visible_url)
 
         tok = tokenizer.UTF8Tokenizer(str(self._soup))
 
@@ -75,20 +81,20 @@ class HtmlSoupUrlFinder:
         )
 
         for token in token_iter:
-            if not any(u in token for u in valid_urls):
-                valid_urls |= TextUrlFinder(token).find_urls()
+            if not any(u.value in token for u in valid_urls):
+                valid_urls += TextUrlFinder(token).find_urls()
 
-        return valid_urls
+        return set(valid_urls)
 
     def _find_document_write_urls(self) -> Set[str]:
-        urls = set()
+        urls = URLList()
 
         document_writes_contents = self._get_document_write_contents()
         for content in document_writes_contents:
             new_parser = HtmlUrlFinder(content, base_url=self._base_url)
-            urls |= new_parser.find_urls()
+            urls += new_parser.find_urls()
 
-        return urls
+        return set(urls)
 
     def _find_visible_urls(self) -> Set[str]:
         visible_text = self._get_visible_text()

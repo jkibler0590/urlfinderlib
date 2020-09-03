@@ -18,6 +18,25 @@ base64_pattern = re.compile(r'(((aHR0c)|(ZnRw))[a-zA-Z0-9]+)')
 
 
 class URLList(UserList):
+    def __eq__(self, other):
+        if isinstance(other, list):
+            return sorted(self.data) == sorted(other)
+        elif isinstance(other, URLList):
+            return sorted(self.data) == sorted(other.data)
+        else:
+            return False
+
+    def append(self, value):
+        if isinstance(value, str):
+            value = URL(value)
+
+        if isinstance(value, URL):
+            if value.is_url:
+                self.data.append(value)
+            elif value.is_url_ascii:
+                self.data.append(URL(helpers.get_ascii_url(value.value)))
+
+
     def get_all_urls(self):
         if self.data:
             all_urls = []
@@ -33,19 +52,6 @@ class URLList(UserList):
         return set()
 
 
-def get_valid_urls(possible_urls: Set[str]) -> Set[str]:
-    valid_urls = set()
-
-    possible_urls = {helpers.fix_possible_url(u) for u in possible_urls if '.' in u}
-    for possible_url in possible_urls:
-        if URL(possible_url).is_url:
-            valid_urls.add(possible_url)
-        elif URL(possible_url).is_url_ascii:
-            valid_urls.add(helpers.get_ascii_url(possible_url))
-
-    return remove_partial_urls(valid_urls)
-
-
 def remove_partial_urls(urls: Set[str]) -> Set[str]:
     return {
         url for url in urls if
@@ -58,6 +64,9 @@ class URL:
     def __init__(self, value: Union[bytes, str]):
         if isinstance(value, bytes):
             value = value.decode('utf-8', errors='ignore')
+
+        if isinstance(value, URL):
+            value = value.value
 
         self.value = value.rstrip('/') if value else ''
         self._value_lower = None
@@ -110,6 +119,12 @@ class URL:
 
     def __hash__(self):
         return hash(self.value)
+
+    def __lt__(self, other):
+        if isinstance(other, URL):
+            return self.value < other.value
+
+        return False
 
     def __repr__(self):
         return f'URL: {self.value}'

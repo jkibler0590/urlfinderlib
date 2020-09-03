@@ -128,15 +128,6 @@ def test_get_scheme():
     assert URL('http://dom[ain.com').split_value.scheme == ''
 
 
-def test_get_valid_urls():
-    assert get_valid_urls({
-        'http://domain.com',
-        'domain',
-        'http://d😉o😉m😉a😉i😉n😉2😉.😉c😉o😉m',
-        'email@domain3.com'
-    }) == {'http://domain.com', 'http://domain2.com'}
-
-
 def test_is_netloc_ipv4():
     valid_ipv4_netloc = [
         'http://1.1.1.1',
@@ -359,6 +350,15 @@ def test_url_permutations():
 
 def test_url_split_value():
     assert URL('http://domain.com').split_value == urlsplit('http://domain.com')
+
+
+def test_urllist_append():
+    urllist = URLList()
+    urllist.append('http://domain.com')
+    urllist.append('domain')
+    urllist.append('http://d😉o😉m😉a😉i😉n😉2😉.😉c😉o😉m'),
+    urllist.append('email@domain3.com')
+    assert urllist == ['http://domain.com', 'http://domain2.com']
 
 
 def test_urllist_get_all_urls_double_nested():

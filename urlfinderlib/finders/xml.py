@@ -2,6 +2,7 @@ from typing import Set, Union
 from xml.etree import cElementTree
 
 from .text import TextUrlFinder
+from urlfinderlib.url import URLList
 
 
 class XmlUrlFinder:
@@ -19,11 +20,11 @@ class XmlUrlFinder:
         possible_urls |= {v for v in self._get_all_attribute_values() if v and '.' in v and '/' in v}
         possible_urls |= {t for t in self._get_all_text() if t and '.' in t and '/' in t}
 
-        urls = set()
+        urls = URLList()
         for possible_url in possible_urls:
-            urls |= TextUrlFinder(possible_url).find_urls(strict=True)
+            urls += TextUrlFinder(possible_url).find_urls(strict=True)
 
-        return urls
+        return set(urls)
 
     def _get_all_attribute_values(self) -> Set[str]:
         values = set()

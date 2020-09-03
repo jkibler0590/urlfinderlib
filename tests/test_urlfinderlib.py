@@ -52,9 +52,7 @@ def test_find_urls_pdf():
     with open(f'{files_dir}/test.pdfparser', 'rb') as f:
         blob = f.read()
 
-    expected_urls = {
-        'http://domain.com/(test/123'
-    }
+    expected_urls = {'http://domain.com', 'http://domain.com/(test/123'}
 
     assert urlfinderlib.find_urls(blob) == expected_urls
 

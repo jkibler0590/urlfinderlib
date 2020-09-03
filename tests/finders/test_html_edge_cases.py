@@ -41,7 +41,7 @@ def test_conditional_html():
 def test_double_opening_characters():
     html = b'<html><body><p>(http://domain.com/(123)</p></body></html>'
     finder = urlfinderlib.finders.HtmlUrlFinder(html)
-    assert finder.find_urls() == {'http://domain.com/(123'}
+    assert finder.find_urls() == {'http://domain.com/(123', 'http://domain.com'}
 
 
 def test_email_embedded_image_url():
