@@ -85,13 +85,6 @@ def is_base64_ascii(value: str) -> bool:
         return False
 
 
-def is_netloc_valid_tld(url: str) -> bool:
-    try:
-        return bool(tld.get_tld(url, fail_silently=True))
-    except:
-        return False
-
-
 def is_url(url: str) -> bool:
     if not url:
         return False
@@ -101,7 +94,7 @@ def is_url(url: str) -> bool:
     if '.' not in url or ':' not in url or '/' not in url:
         return False
 
-    return (is_netloc_valid_tld(url) or URL(url).is_netloc_ipv4 or URL(url).is_netloc_localhost) and is_valid_format(url)
+    return (URL(url).is_netloc_valid_tld or URL(url).is_netloc_ipv4 or URL(url).is_netloc_localhost) and is_valid_format(url)
 
 
 def is_url_ascii(url: str) -> bool:

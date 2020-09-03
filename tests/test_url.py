@@ -212,10 +212,10 @@ def test_is_netloc_valid_tld():
     ]
 
     for url in valid_tld_netloc:
-        assert is_netloc_valid_tld(url) is True
+        assert URL(url).is_netloc_valid_tld is True
 
     for url in invalid_tld_netloc:
-        assert is_netloc_valid_tld(url) is False
+        assert URL(url).is_netloc_valid_tld is False
 
 
 def test_is_url():
