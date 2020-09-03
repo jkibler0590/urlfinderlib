@@ -269,6 +269,7 @@ class URL:
 
         self._is_netloc_ipv4 = None
         self._is_netloc_localhost = None
+        self._is_netloc_valid_tld = None
 
         self._path_all_decoded = None
         self._path_html_decoded = None
@@ -337,9 +338,19 @@ class URL:
             if not self.split_value.hostname:
                 self._is_netloc_localhost = False
             else:
-                self._is_netloc_localhost = self.split_value.hostname.lower() == 'localhost' or split_url.hostname.lower() == 'localhost.localdomain'
+                self._is_netloc_localhost = self.split_value.hostname.lower() == 'localhost' or self.split_value.hostname.lower() == 'localhost.localdomain'
 
         return self._is_netloc_localhost
+
+    @property
+    def is_netloc_valid_tld(self):
+        if self._is_netloc_valid_tld is None:
+            try:
+                self._is_netloc_valid_tld = bool(tld.get_tld(self.value, fail_silently=True))
+            except:
+                self._is_netloc_valid_tld = False
+
+        return self._is_netloc_valid_tld
 
     @property
     def is_proofpoint_v2(self):
