@@ -282,7 +282,7 @@ class URL:
         self._original_url = None
 
         self._is_mandrillapp = None
-        self._is_proofpoint_v2 = 'urldefense.proofpoint.com/v2' in self.value_lower and 'u' in self.query_dict
+        self._is_proofpoint_v2 = None
 
         self._child_urls = None
         self._permutations = None
@@ -321,6 +321,13 @@ class URL:
             self._is_mandrillapp = 'mandrillapp.com' in self.value_lower and 'p' in self.query_dict
 
         return self._is_mandrillapp
+
+    @property
+    def is_proofpoint_v2(self):
+        if self._is_proofpoint_v2 is None:
+            self._is_proofpoint_v2 = 'urldefense.proofpoint.com/v2' in self.value_lower and 'u' in self.query_dict
+
+        return self._is_proofpoint_v2
 
     @property
     def netloc_idna(self):
@@ -524,7 +531,7 @@ class URL:
             if decoded_url:
                 child_urls.add(decoded_url)
 
-        if self._is_proofpoint_v2:
+        if self.is_proofpoint_v2:
             child_urls.add(decode_proofpoint_v2(self.value))
 
         return {URL(u) for u in child_urls}

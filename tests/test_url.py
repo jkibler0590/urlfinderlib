@@ -312,7 +312,7 @@ def test_url_decode_outlook_safelink():
 
 def test_url_decode_proofpoint_v2():
     url = URL('https://urldefense.proofpoint.com/v2/url?u=http-3A__domain.com')
-    assert url._is_proofpoint_v2 is True
+    assert url.is_proofpoint_v2 is True
     assert {URL('http://domain.com')} == url.child_urls
 
     keyerror_url = 'https://urldefense.proofpoint.com/v2/url'
