@@ -268,6 +268,7 @@ class URL:
         self._netlocs = None
 
         self._is_netloc_ipv4 = None
+        self._is_netloc_localhost = None
 
         self._path_all_decoded = None
         self._path_html_decoded = None
@@ -329,6 +330,16 @@ class URL:
                 self._is_netloc_ipv4 = bool(validators.ipv4(self.split_value.hostname))
 
         return self._is_netloc_ipv4
+
+    @property
+    def is_netloc_localhost(self):
+        if self._is_netloc_localhost is None:
+            if not self.split_value.hostname:
+                self._is_netloc_localhost = False
+            else:
+                self._is_netloc_localhost = self.split_value.hostname.lower() == 'localhost' or split_url.hostname.lower() == 'localhost.localdomain'
+
+        return self._is_netloc_localhost
 
     @property
     def is_proofpoint_v2(self):
