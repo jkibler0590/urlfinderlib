@@ -85,18 +85,6 @@ def is_base64_ascii(value: str) -> bool:
         return False
 
 
-def is_netloc_ipv4(url: str) -> bool:
-    try:
-        split_url = urlsplit(url)
-    except ValueError:
-        return False
-
-    if not split_url.hostname:
-        return False
-
-    return bool(validators.ipv4(split_url.hostname))
-
-
 def is_netloc_localhost(url: str) -> bool:
     try:
         split_url = urlsplit(url)
@@ -125,7 +113,7 @@ def is_url(url: str) -> bool:
     if '.' not in url or ':' not in url or '/' not in url:
         return False
 
-    return (is_netloc_valid_tld(url) or is_netloc_ipv4(url) or is_netloc_localhost(url)) and is_valid_format(url)
+    return (is_netloc_valid_tld(url) or URL(url).is_netloc_ipv4 or is_netloc_localhost(url)) and is_valid_format(url)
 
 
 def is_url_ascii(url: str) -> bool:

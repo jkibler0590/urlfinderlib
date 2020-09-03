@@ -174,10 +174,10 @@ def test_is_netloc_ipv4():
     ]
 
     for url in valid_ipv4_netloc:
-        assert is_netloc_ipv4(url) is True
+        assert URL(url).is_netloc_ipv4 is True
 
     for url in invalid_ipv4_netloc:
-        assert is_netloc_ipv4(url) is False
+        assert URL(url).is_netloc_ipv4 is False
 
 
 def test_is_netloc_localhost():
