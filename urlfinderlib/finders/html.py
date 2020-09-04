@@ -218,15 +218,6 @@ class HtmlSoupUrlFinder:
     def _get_tag_attribute_values(self) -> Set[str]:
         all_values = set()
 
-        """
-        for tag in self._soup.find_all():
-            for value in tag.attrs.values():
-                if isinstance(value, str):
-                    all_values.add(helpers.fix_possible_value(value))
-                elif isinstance(value, list):
-                    all_values |= {helpers.fix_possible_value(v) for v in value}
-        """
-
         for tag in self._soup.find_all():
             for attr in tag.attrs:
                 if isinstance(tag[attr], str):
