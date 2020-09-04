@@ -54,7 +54,8 @@ html = b'''
 </html>'''
 
 
-soup = BeautifulSoup(html, features='html.parser')
+def get_soup():
+    return BeautifulSoup(html, features='html.parser')
 
 
 def test_create_text():
@@ -62,22 +63,22 @@ def test_create_text():
 
 
 def test_get_action_values():
-    finder = finders.HtmlSoupUrlFinder(soup)
+    finder = finders.HtmlSoupUrlFinder(get_soup())
     assert finder._get_action_values() == {'action', 'action2'}
 
 
 def test_get_background_values():
-    finder = finders.HtmlSoupUrlFinder(soup)
+    finder = finders.HtmlSoupUrlFinder(get_soup())
     assert finder._get_background_values() == {'background'}
 
 
 def test_get_base_url_from_html():
-    finder = finders.HtmlSoupUrlFinder(soup)
+    finder = finders.HtmlSoupUrlFinder(get_soup())
     assert finder._get_base_url_from_html() == "http://domain.com"
 
 
 def test_get_base_url_eligible_values():
-    finder = finders.HtmlSoupUrlFinder(soup)
+    finder = finders.HtmlSoupUrlFinder(get_soup())
     expected = {
         'http://domain.com',
         'action',
@@ -87,8 +88,6 @@ def test_get_base_url_eligible_values():
         'css2',
         'href',
         'href2',
-        'meta',
-        'meta2',
         'src',
         'src2',
         'xmlns'
@@ -97,12 +96,12 @@ def test_get_base_url_eligible_values():
 
 
 def test_get_css_url_values():
-    finder = finders.HtmlSoupUrlFinder(soup)
+    finder = finders.HtmlSoupUrlFinder(get_soup())
     assert finder._get_css_url_values() == {'css', 'css2'}
 
 
 def test_get_document_writes():
-    finder = finders.HtmlSoupUrlFinder(soup)
+    finder = finders.HtmlSoupUrlFinder(get_soup())
     expected = {
         '''document.write (unescape('<meta HTTP-EQUIV="REFRESH" CONTENT="0; url=http://domain.com/js.php">') ) ;''',
         '''document.write (unescape('<meta HTTP-EQUIV="REFRESH" CONTENT="0; url=http://domain.com/js2.php">') ) ;'''
@@ -111,7 +110,7 @@ def test_get_document_writes():
 
 
 def test_get_document_write_contents():
-    finder = finders.HtmlSoupUrlFinder(soup)
+    finder = finders.HtmlSoupUrlFinder(get_soup())
     expected = {
         '<meta HTTP-EQUIV="REFRESH" CONTENT="0; url=http://domain.com/js.php">',
         '<meta HTTP-EQUIV="REFRESH" CONTENT="0; url=http://domain.com/js2.php">'
@@ -120,18 +119,18 @@ def test_get_document_write_contents():
 
 
 def test_get_href_values():
-    finder = finders.HtmlSoupUrlFinder(soup)
+    finder = finders.HtmlSoupUrlFinder(get_soup())
     assert finder._get_href_values() == {'http://domain.com', 'href', 'href2'}
 
 
 def test_get_meta_refresh_values():
-    finder = finders.HtmlSoupUrlFinder(soup)
+    finder = finders.HtmlSoupUrlFinder(get_soup())
     expected = {'meta', 'meta2'}
     assert finder._get_meta_refresh_values() == expected
 
 
 def test_get_src_values():
-    finder = finders.HtmlSoupUrlFinder(soup)
+    finder = finders.HtmlSoupUrlFinder(get_soup())
     assert finder._get_src_values() == {'src', 'src2'}
 
 
@@ -155,7 +154,7 @@ def test_get_srcset_values():
 
 
 def test_get_tag_attribute_values():
-    finder = finders.HtmlSoupUrlFinder(soup)
+    finder = finders.HtmlSoupUrlFinder(get_soup())
     expected = {
         'xmlns',
         'http://domain.com',
@@ -182,16 +181,16 @@ def test_get_tag_attribute_values():
 
 
 def test_get_visible_text():
-    finder = finders.HtmlSoupUrlFinder(soup)
+    finder = finders.HtmlSoupUrlFinder(get_soup())
     expected = 'vis'
     assert finder._get_visible_text() == expected
 
 
 def test_get_xmlns_values():
-    finder = finders.HtmlSoupUrlFinder(soup)
+    finder = finders.HtmlSoupUrlFinder(get_soup())
     assert finder._get_xmlns_values() == {'xmlns'}
 
 
 def test_pick_base_url():
-    finder = finders.HtmlSoupUrlFinder(soup, base_url='http://domain2.com')
-    assert finder._base_url == 'http://domain.com'
+    finder = finders.HtmlSoupUrlFinder(get_soup(), base_url='http://domain2.com')
+    assert finder.base_url == 'http://domain.com'

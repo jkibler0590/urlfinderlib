@@ -7,7 +7,7 @@ html = b'''
 <html xmlns="xmlns">
     <head>
         <base href="http://domain.com">
-        <meta HTTP-EQUIV="REFRESH" CONTENT="0; url=meta">
+        <meta HTTP-EQUIV="REFRESH" CONTENT="0; url=http://domain.com/meta">
     </head>
 
     <body background="background">
