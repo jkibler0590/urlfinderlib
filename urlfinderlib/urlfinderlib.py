@@ -35,6 +35,8 @@ def find_urls(blob: Union[bytes, str], base_url: str = '', mimetype: str = '') -
     elif 'text' in mimetype:
         if b'xmlns' in blob and b'</' in blob:
             urls += finders.XmlUrlFinder(blob).find_urls()
+        elif _is_csv(blob):
+            urls += finders.CsvUrlFinder(blob).find_urls()
         else:
             urls += finders.TextUrlFinder(blob).find_urls(strict=True)
     else:
@@ -57,6 +59,15 @@ def _has_x_escaped_lowercase_bytes(blob: bytes) -> bool:
 
 def _has_x_escaped_uppercase_bytes(blob: bytes) -> bool:
     return bool(re.search(r'\\x[A-F0-9]{2}', blob.decode('utf-8', errors='ignore')))
+
+
+def _is_csv(blob: bytes) -> bool:
+    lines = blob.decode('utf-8', errors='ignore').splitlines()[:2]
+    for line in lines:
+        if line.count(',') > 1:
+            return True
+
+    return False
 
 
 def _unescape_ascii(blob: bytes) -> bytes:
