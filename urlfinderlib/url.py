@@ -1,5 +1,4 @@
 import base64
-import binascii
 import html
 import idna
 import ipaddress
