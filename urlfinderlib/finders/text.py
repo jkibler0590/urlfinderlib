@@ -30,7 +30,7 @@ class TextUrlFinder:
 
         split_token_iter = tok.get_split_tokens_after_replace(['<', '>', '`', '[', ']', '{', '}', '"', "'", '(', ')'])
 
-        tokens = {t for t in token_iter if '.' in t}
+        tokens = {t for t in token_iter if '.' in t and '/' in t}
         tokens |= {t for t in split_token_iter if '.' in t and '/' in t}
 
         valid_urls = URLList()
