@@ -2,6 +2,7 @@ import base64
 import binascii
 import html
 import idna
+import ipaddress
 import json
 import re
 import tld
@@ -151,7 +152,13 @@ class URL:
             if not self.split_value.hostname:
                 self._is_netloc_ipv4 = False
             else:
-                self._is_netloc_ipv4 = bool(validators.ipv4(self.split_value.hostname))
+                try:
+                    ipaddress.ip_address(self.split_value.hostname)
+                    self._is_netloc_ipv4 = True
+                    return self._is_netloc_ipv4
+                except ValueError:
+                    self._is_netloc_ipv4 = False
+                    return self._is_netloc_ipv4
 
         return self._is_netloc_ipv4
 
