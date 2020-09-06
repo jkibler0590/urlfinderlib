@@ -1,9 +1,9 @@
 import re
 import warnings
 
-from bs4 import BeautifulSoup
-from bs4.element import Comment
+from io import StringIO
 from itertools import chain
+from lxml import etree
 from typing import Set, Union
 from urllib.parse import unquote, urljoin
 
@@ -17,35 +17,54 @@ from urlfinderlib.url import URLList
 warnings.filterwarnings('ignore', category=UserWarning, module='bs4')
 
 
+def _build_tree(string: str) -> etree.Element:
+    parser = etree.HTMLParser(encoding='utf-8', default_doctype=False)
+    return etree.parse(StringIO(string), parser=parser)
+
+
+def _remove_element_from_tree(element: etree.Element) -> None:
+    parent = element.getparent()
+
+    if element.tail and element.tail.strip():
+        prev = element.getprevious()
+        if prev is not None:
+            prev.tail = (prev.tail or '') + element.tail
+        else:
+            parent.text = (parent.text or '') + element.tail
+
+    parent.remove(element)
+
+
+def _remove_obfuscating_font_tags_from_tree(tree: etree.Element) -> None:
+    for tag in tree.iterfind('.//font[@id]'):
+        if len(tag.items()) == 1:
+            _remove_element_from_tree(tag)
+
+
 class HtmlUrlFinder:
-    def __init__(self, blob: Union[bytes, str], base_url: str = None):
+    def __init__(self, blob: Union[bytes, str], base_url: str = ''):
         if isinstance(blob, str):
             blob = blob.encode('utf-8', errors='ignore')
 
-        utf8_string = blob.decode('utf-8', errors='ignore')
-        unquoted_utf8_string = unquote(utf8_string, errors='ignore')
-
         self._base_url = base_url
 
-        self._soups = [BeautifulSoup(utf8_string, features='html.parser')]
-        if utf8_string != unquoted_utf8_string:
-            self._soups.append(BeautifulSoup(unquoted_utf8_string, features='html.parser'))
+        utf8_string = unquote(helpers.remove_null_characters(blob.decode('utf-8', errors='ignore')))
+        self._strings = {utf8_string}
 
     def find_urls(self) -> Set[str]:
         urls = URLList()
-        for soup in self._soups:
-            urls += HtmlSoupUrlFinder(soup, base_url=self._base_url).find_urls()
+        for string in self._strings:
+            urls += HtmlTreeUrlFinder(string, base_url=self._base_url).find_urls()
 
         return set(urls)
 
 
-class HtmlSoupUrlFinder:
-    def __init__(self, soup: BeautifulSoup, base_url: str = None):
-        self._soup = soup
-        self._soup_string = str(soup)
-        self._remove_obfuscating_font_tags_from_soup()
-        self._given_base_url = base_url
+class HtmlTreeUrlFinder:
+    def __init__(self, string: str, base_url: str = ''):
         self._base_url = None
+        self._given_base_url = base_url
+        self._string = string
+        self._tree = _build_tree(string)
 
     @property
     def base_url(self):
@@ -53,6 +72,10 @@ class HtmlSoupUrlFinder:
             self._base_url = self._pick_base_url(self._given_base_url)
 
         return self._base_url
+
+    @property
+    def tree_string(self):
+        return unquote(etree.tostring(self._tree, encoding='unicode', method='html'))
 
     def find_urls(self) -> Set[str]:
         valid_urls = URLList()
@@ -72,14 +95,14 @@ class HtmlSoupUrlFinder:
 
         srcset_values = self._get_srcset_values()
         possible_urls = {u for u in possible_urls if not any(srcset_value in u for srcset_value in srcset_values)}
-        possible_urls |= {urljoin(self.base_url, u) for u in srcset_values}
+        possible_urls |= {urljoin(self._base_url, u) for u in srcset_values}
 
         possible_urls |= self._get_tag_attribute_values()
 
         for possible_url in possible_urls:
             valid_urls.append(helpers.fix_possible_url(possible_url))
 
-        tok = tokenizer.UTF8Tokenizer(str(self._soup))
+        tok = tokenizer.UTF8Tokenizer(self.tree_string)
 
         # TODO: itertools.product(*zip(string.lower(), string.upper()))
         token_iter = chain(
@@ -113,7 +136,7 @@ class HtmlSoupUrlFinder:
 
     def _find_visible_urls(self) -> Set[str]:
         visible_text = self._get_visible_text()
-        possible_urls = [line for line in visible_text.splitlines() if '.' in line and '/' in line]
+        possible_urls = {line for line in visible_text.splitlines() if '.' in line and '/' in line}
 
         urls = URLList()
         for possible_url in possible_urls:
@@ -122,25 +145,26 @@ class HtmlSoupUrlFinder:
         return set(urls)
 
     def _get_action_values(self) -> Set[str]:
-        tags = self._soup.find_all(action=True)
-        values = {helpers.fix_possible_value(tag['action']) for tag in tags}
-        for tag in tags:
-            tag['action'] = ''
-
+        values = set()
+        for tag in self._tree.iterfind('.//*[@action]'):
+            values.add(helpers.fix_possible_url(tag.attrib['action']))
+            tag.attrib['action'] = ''
         return values
 
     def _get_background_values(self) -> Set[str]:
-        tags = self._soup.find_all(background=True)
-        values = {helpers.fix_possible_value(tag['background']) for tag in tags}
-        for tag in tags:
-            tag['background'] = ''
-
+        values = set()
+        for tag in self._tree.iterfind('.//*[@background]'):
+            values.add(helpers.fix_possible_url(tag.attrib['background']))
+            tag.attrib['background'] = ''
         return values
 
     def _get_base_url_from_html(self) -> str:
-        base_tag = self._soup.find('base', attrs={'href': True})
-        base_url = helpers.fix_possible_url(base_tag['href']) if base_tag else None
-        return base_url if is_url(base_url) else ''
+        tag = self._tree.find('.//base[@href]')
+        if tag is not None:
+            base_url = helpers.fix_possible_url(tag.attrib['href'])
+            return base_url if is_url(base_url) else ''
+
+        return ''
 
     def _get_base_url_eligible_values(self) -> Set[str]:
         values = set()
@@ -155,10 +179,10 @@ class HtmlSoupUrlFinder:
 
     def _get_css_url_values(self) -> Set[str]:
         return {match for match in
-                re.findall(r"url\s*\(\s*[\'\"]?(.*?)[\'\"]?\s*\)", str(self._soup), flags=re.IGNORECASE)}
+                re.findall(r"url\s*\(\s*[\'\"]?(.*?)[\'\"]?\s*\)", self._string, flags=re.IGNORECASE)}
 
     def _get_document_writes(self) -> Set[str]:
-        return {match for match in re.findall(r"document\.write\s*\(.*?\)\s*;", str(self._soup), flags=re.IGNORECASE)}
+        return {match for match in re.findall(r"document\.write\s*\(.*?\)\s*;", self._string, flags=re.IGNORECASE)}
 
     def _get_document_write_contents(self) -> Set[str]:
         document_writes = self._get_document_writes()
@@ -173,87 +197,74 @@ class HtmlSoupUrlFinder:
         return document_writes_contents
 
     def _get_href_values(self) -> Set[str]:
-        tags = self._soup.find_all(href=True)
-        values = {helpers.fix_possible_value(tag['href']) for tag in tags}
-        for tag in tags:
-            tag['href'] = ''
+        values = set()
+        for tag in self._tree.iterfind('.//*[@href]'):
+            values.add(helpers.fix_possible_url(tag.attrib['href']))
+            tag.attrib['href'] = ''
 
         return values
 
     def _get_meta_refresh_values(self) -> Set[str]:
         values = set()
 
-        tags = self._soup.find_all('meta',
-                                   attrs={'http-equiv': re.compile(r"refresh", flags=re.IGNORECASE),
-                                          'content': re.compile(r"url\s*=", flags=re.IGNORECASE)})
-        for tag in tags:
-            value = tag['content'].partition('=')[2].strip()
-            value = helpers.fix_possible_value(value)
-            values.add(value)
+        for tag in self._tree.iterfind('.//meta[@http-equiv][@content]'):
+            value = tag.attrib['content']
+            if 'url=' in value.lower():
+                value = value.partition('=')[2].strip()
+                value = helpers.fix_possible_value(value)
+                values.add(value)
 
         return values
 
     def _get_src_values(self) -> Set[str]:
-        tags = self._soup.find_all(src=True)
-        values = {helpers.fix_possible_value(tag['src']) for tag in tags}
-        for tag in tags:
-            tag['src'] = ''
-
+        values = set()
+        for tag in self._tree.iterfind('.//*[@src]'):
+            values.add(helpers.fix_possible_url(tag.attrib['src']))
+            tag.attrib['src'] = ''
         return values
 
     def _get_srcset_values(self) -> Set[str]:
-        tags = self._soup.find_all(srcset=True)
-
         values = set()
-        srcset_values = {helpers.fix_possible_value(tag['srcset']) for tag in tags}
-        for srcset_value in srcset_values:
-            splits = srcset_value.split(',')
+        for tag in self._tree.iterfind('.//*[@srcset]'):
+            value = helpers.fix_possible_url(tag.attrib['srcset'])
+            splits = value.split(',')
             values |= {s.strip().split(' ')[0] for s in splits}
 
-        for tag in tags:
-            tag['srcset'] = ''
+            tag.attrib['srcset'] = ''
 
         return values
 
     def _get_tag_attribute_values(self) -> Set[str]:
-        all_values = set()
+        values = set()
 
-        for tag in self._soup.find_all():
-            for attr in tag.attrs:
-                if isinstance(tag[attr], str):
-                    all_values.add(helpers.fix_possible_value(tag[attr]))
-                elif isinstance(tag[attr], list):
-                    all_values |= {helpers.fix_possible_value(v) for v in tag[attr]}
+        for element in self._tree.iter():
+            values |= {v for v in element.attrib.values()}
 
-                tag[attr] = ''
-
-        return all_values
-
-    def _get_visible_text(self) -> str:
-        def _is_tag_visible(tag):
-            if tag.parent.name in ['style', 'script', 'head', 'title', 'meta', '[document]']:
-                return False
-            return not isinstance(tag, Comment)
-
-        text_tags = self._soup.find_all(text=True)
-        visible_text_tags = filter(_is_tag_visible, text_tags)
-        return ''.join(t for t in visible_text_tags).strip()
-
-    def _get_xmlns_values(self) -> Set[str]:
-        tags = self._soup.find_all(xmlns=True)
-        values = {helpers.fix_possible_value(tag['xmlns']) for tag in tags}
-        for tag in tags:
-            tag['xmlns'] = ''
+            for attrib in element.attrib:
+                element.attrib[attrib] = ''
 
         return values
 
+    def _get_visible_text(self) -> str:
+        new_tree = _build_tree(self._string)
+        _remove_obfuscating_font_tags_from_tree(new_tree)
+
+        for tag in new_tree.iterfind('.//script'):
+            _remove_element_from_tree(tag)
+
+        for tag in new_tree.iterfind('.//style'):
+            _remove_element_from_tree(tag)
+
+        return etree.tostring(new_tree, encoding='utf-8', method='text').decode('utf-8', errors='ignore').strip()
+
+    def _get_xmlns_values(self) -> Set[str]:
+        values = {helpers.fix_possible_url(tag.attrib['xmlns']) for tag in self._tree.iterfind('.[@xmlns]')}
+        values |= {helpers.fix_possible_url(tag.attrib['xmlns']) for tag in self._tree.iterfind('.//*[@xmlns]')}
+        return values
+
     def _pick_base_url(self, given_base_url: str) -> str:
+        if self._base_url:
+            return self._base_url
+
         found_base_url = self._get_base_url_from_html()
         return found_base_url if found_base_url else given_base_url
-
-    def _remove_obfuscating_font_tags_from_soup(self) -> None:
-        font_tags = self._soup.find_all(
-            lambda t: t.name == 'font' and len(t.attrs) == 1 and 'id' in t.attrs and t['id'])
-
-        for tag in font_tags:
-            tag.decompose()

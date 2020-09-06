@@ -1,4 +1,4 @@
-from bs4 import BeautifulSoup
+from lxml import etree
 
 import urlfinderlib.finders
 
@@ -18,9 +18,8 @@ def test_backslashes():
 
 
 def test_base_url_with_backslashes():
-    html = b'<html><head><base href="http:\\/domain.com"></head><body><a href="index.php"></a></body></html>'
-    soup = BeautifulSoup(html, features='html.parser')
-    finder = urlfinderlib.finders.HtmlSoupUrlFinder(soup)
+    html = '<html><head><base href="http:\\/domain.com"></head><body><a href="index.php"></a></body></html>'
+    finder = urlfinderlib.finders.HtmlTreeUrlFinder(html)
 
     assert finder._get_base_url_from_html() == 'http://domain.com'
     assert finder.find_urls() == {'http://domain.com', 'http://domain.com/index.php'}
