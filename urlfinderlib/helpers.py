@@ -1,6 +1,11 @@
+import base64
 import validators
 
 from urllib.parse import urlsplit
+
+
+def build_url(scheme: str, netloc: str, path: str) -> str:
+    return f'{scheme}://{netloc}{path}'
 
 
 def fix_possible_url(value: str) -> str:
@@ -24,6 +29,18 @@ def fix_slashes(value: str) -> str:
         return value.replace(':/', '://')
 
     return value
+
+
+def get_ascii_url(url: str) -> str:
+    return url.encode('ascii', errors='ignore').decode()
+
+
+def is_base64_ascii(value: str) -> bool:
+    try:
+        base64.b64decode(f'{value}===').decode('ascii')
+        return True
+    except:
+        return False
 
 
 def prepend_missing_scheme(value: str) -> str:

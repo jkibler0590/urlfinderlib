@@ -1,6 +1,10 @@
 import urlfinderlib.helpers as helpers
 
 
+def test_build_url():
+    assert helpers.build_url('http', 'domain.com', '/index.php?test') == 'http://domain.com/index.php?test'
+
+
 def test_fix_possible_url():
     assert helpers.fix_possible_url('//domain.com\\index\u0000.html') == 'http://domain.com/index.html'
 
@@ -12,6 +16,16 @@ def test_fix_possible_value():
 def test_fix_slashes():
     assert helpers.fix_slashes('http:/\\domain.com') == 'http://domain.com'
     assert helpers.fix_slashes('http:/domain.com/index.html') == 'http://domain.com/index.html'
+
+
+def test_get_ascii_url():
+    assert helpers.get_ascii_url('http://d😉o😉m😉a😉i😉n😉.😉c😉o😉m') == 'http://domain.com'
+
+
+def test_is_base64_ascii():
+    assert helpers.is_base64_ascii('asdf') is False
+    assert helpers.is_base64_ascii('faß') is False
+    assert helpers.is_base64_ascii('YXNkZgo=') is True
 
 
 def test_prepend_missing_scheme():

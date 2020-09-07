@@ -10,7 +10,7 @@ def test_backslashes():
 def test_double_opening_characters():
     text = b'<http://domain.com/<123>'
     finder = urlfinderlib.finders.TextUrlFinder(text)
-    assert finder.find_urls() == {'http://domain.com/<123'}
+    assert finder.find_urls() == {'http://domain.com/<123', 'http://domain.com'}
 
 
 def test_mailto():

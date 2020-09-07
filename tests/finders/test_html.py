@@ -1,9 +1,9 @@
-from bs4 import BeautifulSoup
+from lxml import etree
 
 import urlfinderlib.finders as finders
 
 
-html = b'''
+html = '''
 <html xmlns="xmlns">
     <head>
         <base href="http://domain.com">
@@ -54,30 +54,27 @@ html = b'''
 </html>'''
 
 
-soup = BeautifulSoup(html, features='html.parser')
-
-
 def test_create_text():
     assert finders.HtmlUrlFinder('test')
 
 
 def test_get_action_values():
-    finder = finders.HtmlSoupUrlFinder(soup)
+    finder = finders.HtmlTreeUrlFinder(html)
     assert finder._get_action_values() == {'action', 'action2'}
 
 
 def test_get_background_values():
-    finder = finders.HtmlSoupUrlFinder(soup)
+    finder = finders.HtmlTreeUrlFinder(html)
     assert finder._get_background_values() == {'background'}
 
 
 def test_get_base_url_from_html():
-    finder = finders.HtmlSoupUrlFinder(soup)
+    finder = finders.HtmlTreeUrlFinder(html)
     assert finder._get_base_url_from_html() == "http://domain.com"
 
 
 def test_get_base_url_eligible_values():
-    finder = finders.HtmlSoupUrlFinder(soup)
+    finder = finders.HtmlTreeUrlFinder(html)
     expected = {
         'http://domain.com',
         'action',
@@ -87,8 +84,6 @@ def test_get_base_url_eligible_values():
         'css2',
         'href',
         'href2',
-        'meta',
-        'meta2',
         'src',
         'src2',
         'xmlns'
@@ -97,12 +92,12 @@ def test_get_base_url_eligible_values():
 
 
 def test_get_css_url_values():
-    finder = finders.HtmlSoupUrlFinder(soup)
+    finder = finders.HtmlTreeUrlFinder(html)
     assert finder._get_css_url_values() == {'css', 'css2'}
 
 
 def test_get_document_writes():
-    finder = finders.HtmlSoupUrlFinder(soup)
+    finder = finders.HtmlTreeUrlFinder(html)
     expected = {
         '''document.write (unescape('<meta HTTP-EQUIV="REFRESH" CONTENT="0; url=http://domain.com/js.php">') ) ;''',
         '''document.write (unescape('<meta HTTP-EQUIV="REFRESH" CONTENT="0; url=http://domain.com/js2.php">') ) ;'''
@@ -111,7 +106,7 @@ def test_get_document_writes():
 
 
 def test_get_document_write_contents():
-    finder = finders.HtmlSoupUrlFinder(soup)
+    finder = finders.HtmlTreeUrlFinder(html)
     expected = {
         '<meta HTTP-EQUIV="REFRESH" CONTENT="0; url=http://domain.com/js.php">',
         '<meta HTTP-EQUIV="REFRESH" CONTENT="0; url=http://domain.com/js2.php">'
@@ -120,23 +115,23 @@ def test_get_document_write_contents():
 
 
 def test_get_href_values():
-    finder = finders.HtmlSoupUrlFinder(soup)
+    finder = finders.HtmlTreeUrlFinder(html)
     assert finder._get_href_values() == {'http://domain.com', 'href', 'href2'}
 
 
 def test_get_meta_refresh_values():
-    finder = finders.HtmlSoupUrlFinder(soup)
+    finder = finders.HtmlTreeUrlFinder(html)
     expected = {'meta', 'meta2'}
     assert finder._get_meta_refresh_values() == expected
 
 
 def test_get_src_values():
-    finder = finders.HtmlSoupUrlFinder(soup)
+    finder = finders.HtmlTreeUrlFinder(html)
     assert finder._get_src_values() == {'src', 'src2'}
 
 
 def test_get_srcset_values():
-    html = """
+    this_html = """
 <img src="http://domain2.com/image-small.png"
     srcset="http://domain2.com/image-small.png 320w,
         http://domain2.com/image-medium.png 800w,
@@ -145,8 +140,7 @@ def test_get_srcset_values():
     alt="Image description">
 """
 
-    this_soup = BeautifulSoup(html, features='html.parser')
-    finder = finders.HtmlSoupUrlFinder(this_soup)
+    finder = finders.HtmlTreeUrlFinder(this_html)
     assert finder._get_srcset_values() == {
         'http://domain2.com/image-small.png',
         'http://domain2.com/image-medium.png',
@@ -155,7 +149,7 @@ def test_get_srcset_values():
 
 
 def test_get_tag_attribute_values():
-    finder = finders.HtmlSoupUrlFinder(soup)
+    finder = finders.HtmlTreeUrlFinder(html)
     expected = {
         'xmlns',
         'http://domain.com',
@@ -170,8 +164,8 @@ def test_get_tag_attribute_values():
         "background-image: url('css');",
         "background-image: url('css2');",
         'href',
-        'body',
-        'strikeout',
+        'body strikeout',
+        'obf',
         'href2',
         'src',
         'src2',
@@ -182,16 +176,27 @@ def test_get_tag_attribute_values():
 
 
 def test_get_visible_text():
-    finder = finders.HtmlSoupUrlFinder(soup)
+    finder = finders.HtmlTreeUrlFinder(html)
     expected = 'vis'
     assert finder._get_visible_text() == expected
 
 
 def test_get_xmlns_values():
-    finder = finders.HtmlSoupUrlFinder(soup)
+    finder = finders.HtmlTreeUrlFinder(html)
     assert finder._get_xmlns_values() == {'xmlns'}
 
 
 def test_pick_base_url():
-    finder = finders.HtmlSoupUrlFinder(soup, base_url='http://domain2.com')
-    assert finder._base_url == 'http://domain.com'
+    finder = finders.HtmlTreeUrlFinder(html, base_url='http://domain2.com')
+    assert finder.base_url == 'http://domain.com'
+
+
+def test_replace_href_value():
+    this_html = '<html><body><a href="test">blah</a></body></html>'
+    finder = finders.HtmlTreeUrlFinder(this_html)
+    assert finder.tree_string == this_html
+
+    href_values = finder._get_href_values()
+    assert href_values == {'test'}
+
+    assert finder.tree_string == '<html><body><a href="">blah</a></body></html>'

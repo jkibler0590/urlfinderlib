@@ -1,5 +1,3 @@
-from bs4 import BeautifulSoup
-
 import urlfinderlib.finders
 
 
@@ -7,7 +5,7 @@ html = b'''
 <html xmlns="xmlns">
     <head>
         <base href="http://domain.com">
-        <meta HTTP-EQUIV="REFRESH" CONTENT="0; url=meta">
+        <meta HTTP-EQUIV="REFRESH" CONTENT="0; url=http://domain.com/meta">
     </head>
 
     <body background="background">
@@ -42,9 +40,6 @@ html = b'''
         <div id="id"></div>
     </body>
 </html>'''
-
-
-soup = BeautifulSoup(html, features='html.parser')
 
 
 def test_find_urls():

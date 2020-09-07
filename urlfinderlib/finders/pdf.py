@@ -4,6 +4,7 @@ from typing import Set, Union
 import urlfinderlib.tokenizer as tokenizer
 
 from .text import TextUrlFinder
+from urlfinderlib.url import URLList
 
 
 class PdfUrlFinder:
@@ -16,6 +17,7 @@ class PdfUrlFinder:
     def find_urls(self) -> Set[str]:
         tok = tokenizer.UTF8Tokenizer(self.blob)
 
+        # TODO: itertools.product(*zip(string.lower(), string.upper()))
         token_iter = chain(
             tok.get_tokens_between_open_and_close_sequence('/URI', '>>', strict=True),
 
@@ -44,9 +46,9 @@ class PdfUrlFinder:
             tok.get_tokens_between_open_and_close_sequence("'FTP", "'", strict=True)
         )
 
-        urls = set()
+        urls = URLList()
         for token in token_iter:
             token = token.replace('\\', '')
-            urls |= TextUrlFinder(token).find_urls()
+            urls += TextUrlFinder(token).find_urls()
 
-        return urls
+        return set(urls)

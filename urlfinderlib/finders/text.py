@@ -1,9 +1,10 @@
 from itertools import chain
 from typing import Set, Union
 
+import urlfinderlib.helpers as helpers
 import urlfinderlib.tokenizer as tokenizer
 
-from urlfinderlib.url import get_valid_urls
+from urlfinderlib.url import URLList
 
 
 class TextUrlFinder:
@@ -29,7 +30,11 @@ class TextUrlFinder:
 
         split_token_iter = tok.get_split_tokens_after_replace(['<', '>', '`', '[', ']', '{', '}', '"', "'", '(', ')'])
 
-        tokens = {t for t in token_iter if '.' in t}
+        tokens = {t for t in token_iter if '.' in t and '/' in t}
         tokens |= {t for t in split_token_iter if '.' in t and '/' in t}
 
-        return get_valid_urls(tokens)
+        valid_urls = URLList()
+        for token in tokens:
+            valid_urls.append(helpers.fix_possible_url(token))
+
+        return set(valid_urls)
