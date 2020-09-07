@@ -99,18 +99,16 @@ class URL:
 
     def __eq__(self, other: Union[bytes, str, 'URL']) -> bool:
         if isinstance(other, str):
-            return other in self.permutations
-
-        elif isinstance(other, URL):
-            return self.value in other.permutations
-
+            other = URL(other)
         elif isinstance(other, bytes):
-            return other.decode('utf-8', errors='ignore') in self.permutations
+            other = URL(other.decode('utf-8', errors='ignore'))
+        elif not isinstance(other, URL):
+            return False
 
-        return False
+        return self.value == other.value or any(other_permutation in self.permutations for other_permutation in other.permutations)
 
     def __hash__(self) -> int:
-        return hash(self.value)
+        return hash(html.unescape(unquote(self.value)))
 
     def __lt__(self, other: 'URL') -> bool:
         if isinstance(other, URL):

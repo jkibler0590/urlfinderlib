@@ -1,6 +1,7 @@
 import re
 import warnings
 
+import html
 from io import StringIO
 from itertools import chain
 from lxml import etree
@@ -48,8 +49,12 @@ class HtmlUrlFinder:
 
         self._base_url = base_url
 
-        utf8_string = unquote(helpers.remove_null_characters(blob.decode('utf-8', errors='ignore')))
-        self._strings = {utf8_string}
+        utf8_string = helpers.remove_null_characters(blob.decode('utf-8', errors='ignore'))
+        unquote_utf8_string = html.unescape(unquote(utf8_string))
+
+        self._strings = [utf8_string]
+        if utf8_string != unquote_utf8_string:
+            self._strings.append(unquote_utf8_string)
 
     def find_urls(self) -> Set[str]:
         urls = URLList()
@@ -263,8 +268,5 @@ class HtmlTreeUrlFinder:
         return values
 
     def _pick_base_url(self, given_base_url: str) -> str:
-        if self._base_url:
-            return self._base_url
-
         found_base_url = self._get_base_url_from_html()
         return found_base_url if found_base_url else given_base_url

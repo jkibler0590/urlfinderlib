@@ -72,7 +72,10 @@ def test_equal_string():
 
 
 def test_equal_url():
-    assert URL('http://domain.com') == URL('http://domain.com')
+    url1 = URL('http://domain.com/index?URL=http://domain2.com/index2')
+    url2 = URL('http://domain.com/index?URL=http%3A%2F%2Fdomain2.com%2Findex2')
+    assert url1 == url2
+    assert len({url1, url2}) == 1
 
 
 def test_get_fragment_dict():
