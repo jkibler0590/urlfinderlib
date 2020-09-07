@@ -1,5 +1,3 @@
-from bs4 import BeautifulSoup
-
 import urlfinderlib.finders
 
 
@@ -42,9 +40,6 @@ html = b'''
         <div id="id"></div>
     </body>
 </html>'''
-
-
-soup = BeautifulSoup(html, features='html.parser')
 
 
 def test_find_urls():
