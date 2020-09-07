@@ -49,12 +49,8 @@ class HtmlUrlFinder:
 
         self._base_url = base_url
 
-        utf8_string = helpers.remove_null_characters(blob.decode('utf-8', errors='ignore'))
-        unquote_utf8_string = html.unescape(unquote(utf8_string))
-
+        utf8_string = html.unescape(unquote(helpers.remove_null_characters(blob.decode('utf-8', errors='ignore'))))
         self._strings = [utf8_string]
-        if utf8_string != unquote_utf8_string:
-            self._strings.append(unquote_utf8_string)
 
     def find_urls(self) -> Set[str]:
         urls = URLList()
