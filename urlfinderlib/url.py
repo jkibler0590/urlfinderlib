@@ -406,7 +406,24 @@ class URL:
     def decode_proofpoint_v2(self) -> str:
         try:
             query_url = self.query_dict['u'][0]
-            possible_url = query_url.replace('-3A', ':').replace('_', '/').replace('-2D', '-')
+
+            # In cases where this URL is encoded multiple times by Proofpoint, we need to replace the "-2D" first,
+            # as that represents the "-" character that all of the other character encodings rely on. After this
+            # character, it shouldn't matter the order in which the rest of the characters get replaced.
+            possible_url = query_url.replace('-2D', '-')
+
+            replacements = {
+                '_': '/',
+                '-26': '&',
+                '-3A': ':',
+                '-3D': '=',
+                '-3F': '?',
+                '-5F': '/'
+            }
+
+            for replace_encoded, replace_decoded in replacements.items():
+                possible_url = possible_url.replace(replace_encoded, replace_decoded)
+
             return possible_url if URL(possible_url).is_url else ''
         except KeyError:
             return ''
