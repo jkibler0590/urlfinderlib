@@ -60,8 +60,7 @@ class HtmlUrlFinder:
     def find_urls(self) -> Set[str]:
         urls = URLList()
         for string in self._strings:
-            if string:
-                urls += HtmlTreeUrlFinder(string, base_url=self._base_url).find_urls()
+            urls += HtmlTreeUrlFinder(string, base_url=self._base_url).find_urls()
 
         return set(urls)
 
@@ -201,7 +200,7 @@ class HtmlTreeUrlFinder:
             write_content = document_write[write_begin_index + 1:write_end_index]
             document_writes_contents.add(helpers.fix_possible_value(write_content))
 
-        return document_writes_contents
+        return {contents for contents in document_writes_contents if contents}
 
     def _get_href_values(self) -> Set[str]:
         values = set()
