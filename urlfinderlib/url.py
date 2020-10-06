@@ -391,7 +391,8 @@ class URL:
         return self._value_lower
 
     def decode_mandrillapp(self) -> str:
-        decoded = base64.b64decode(f'{self.query_dict["p"][0]}===')
+        base64_string = self.query_dict['p'][0].replace('_', '/')
+        decoded = base64.b64decode(f'{base64_string}===')
 
         try:
             outer_json = json.loads(decoded)
