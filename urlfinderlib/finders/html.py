@@ -60,7 +60,8 @@ class HtmlUrlFinder:
     def find_urls(self) -> Set[str]:
         urls = URLList()
         for string in self._strings:
-            urls += HtmlTreeUrlFinder(string, base_url=self._base_url).find_urls()
+            if string:
+                urls += HtmlTreeUrlFinder(string, base_url=self._base_url).find_urls()
 
         return set(urls)
 
