@@ -54,6 +54,11 @@ def test_find_urls_html():
     assert urlfinderlib.find_urls(blob) == expected_urls
 
 
+def test_find_urls_in_text_like_html():
+    blob = b'''<meta http-equiv="refresh" content="0; URL=https://blah.com/one/two">'''
+    assert urlfinderlib.find_urls(blob) == {'https://blah.com/one/two'}
+
+
 def test_find_urls_ooxml():
     with open(f'{files_dir}/test.ooxml', 'rb') as f:
         blob = f.read()
