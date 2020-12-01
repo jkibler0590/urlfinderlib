@@ -28,6 +28,11 @@ def test_is_base64_ascii():
     assert helpers.is_base64_ascii('YXNkZgo=') is True
 
 
+def test_might_be_html():
+    assert helpers.might_be_html(b'<meta http-equiv="refresh" content="0; URL=https://blah.com/one/two">') is True
+    assert helpers.might_be_html(b'https://blah.com/one/two') is False
+
+
 def test_prepend_missing_scheme():
     assert helpers.prepend_missing_scheme('domain.com') == 'domain.com'
     assert helpers.prepend_missing_scheme('domain.com/index.html') == 'http://domain.com/index.html'

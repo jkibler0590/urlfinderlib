@@ -43,6 +43,11 @@ def is_base64_ascii(value: str) -> bool:
         return False
 
 
+def might_be_html(value: bytes) -> bool:
+    html_characters = [b'<', b'>', b'=', b':', b'/']
+    return all(html_character in value for html_character in html_characters)
+
+
 def prepend_missing_scheme(value: str) -> str:
     value = value.lstrip(':/')
 
