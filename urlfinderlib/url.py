@@ -68,6 +68,7 @@ class URL:
             value = value.value
 
         self.value = value.rstrip('/') if value else ''
+        self.value = self.value.rstrip('\\') if self.value else ''
 
         self._child_urls = None
         self._fragment_dict = None

@@ -20,7 +20,12 @@ warnings.filterwarnings('ignore', category=UserWarning, module='bs4')
 
 def _build_tree(string: str) -> etree.Element:
     parser = etree.HTMLParser(encoding='utf-8', default_doctype=False)
-    return etree.parse(StringIO(string), parser=parser)
+
+    tree = etree.parse(StringIO(string), parser=parser)
+    if tree.getroot() is None:
+        tree = etree.parse(StringIO('<html></html>'), parser=parser)
+
+    return tree
 
 
 def _remove_element_from_tree(element: etree.Element) -> None:
@@ -55,7 +60,6 @@ class HtmlUrlFinder:
         self._strings = [utf8_string]
         if decoded_utf8_string != utf8_string:
             self._strings.append(decoded_utf8_string)
-        
 
     def find_urls(self) -> Set[str]:
         urls = URLList()

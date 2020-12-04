@@ -59,6 +59,12 @@ def test_find_urls():
     assert finder.find_urls() == expected_urls
 
 
+def test_find_urls_missing_root():
+    this_html = b'''<html><head><script>document.write('</style>');</script></head></html>'''
+    finder = urlfinderlib.finders.HtmlUrlFinder(this_html)
+    assert finder.find_urls() == set()
+
+
 def test_find_urls_using_manual_base_url():
     this_html = b'''<html><head></head><body><a href="index.php"></a></body></html>'''
     finder = urlfinderlib.finders.HtmlUrlFinder(this_html, base_url='http://domain.com')
