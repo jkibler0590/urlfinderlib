@@ -9,7 +9,10 @@ This is a Python (3.6+) library for finding URLs in documents and checking their
 Extracts URLs from the following types of documents:
 
 * Binary files (finds URLs within strings)
+* CSV files
 * HTML files
+* iCalendar/vCalendar files
+* PDF files
 * Text files (ASCII or UTF-8)
 * XML files
 
