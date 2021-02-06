@@ -1,0 +1,27 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//My calendar product//abc.de//
+BEGIN:VEVENT
+SUMMARY:Urlfinderlib iCalendar test
+DTSTART;VALUE=DATE-TIME:20210404T080000Z
+DTEND;VALUE=DATE-TIME:20210404T100000Z
+DTSTAMP;VALUE=DATE-TIME:20210404T001000Z
+UID:20210115T101010/27346262376@abc.de
+DESCRIPTION:Lorem ipsum dolor sit amet\, consectetur adipiscing elit. <htt
+ ps://thisisjustatest.com> Mauris efficitur dolor hendrerit velit fringilla
+ \, id auctor urna aliquet. Ut ac tortor vel lacus mattis condimentum. Sed
+ fringilla elementum turpis id maximus. <https://thisisjustatest2.com> Vest
+ ibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubil
+ ia curae\; Sed semper dictum interdum. Suspendisse et sodales tortor\, at
+ viverra quam. Nulla vitae dictum urna\, nec laoreet neque. Integer <https:
+ //thisisjustatest3.com> tristique metus nec purus interdum\, aliquam euism
+ od libero accumsan. Donec vulputate velit nec libero consectetur iaculis.
+ Pellentesque a scelerisque felis\, quis tristique dolor. Etiam egestas veh
+ icula lobortis. Nam congue eleifend tellus\, in ultricies mauris. Aliquam
+ erat volutpat. Duis interdum\, lectus at lobortis faucibus\, metus lacus f
+ ermentum quam\, sit amet porta purus ex sit amet dui. Curabitur maximus lo
+ rem sit amet neque dapibus sodales.
+LOCATION:https://thisisjustatest4.com
+PRIORITY:5
+END:VEVENT
+END:VCALENDAR
