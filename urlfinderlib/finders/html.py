@@ -251,6 +251,11 @@ class HtmlTreeUrlFinder:
             values |= {v for v in element.attrib.values()}
 
             for attrib in element.attrib:
+                # Ignore the "onclick" attribute since that contains JavaScript. By not replacing this value, it lets
+                # the TextUrlFinder attempt to extract URLs from it instead since it is not parsed by lxml.
+                if attrib.lower() == 'onclick':
+                    continue
+
                 element.attrib[attrib] = ''
 
         return values
