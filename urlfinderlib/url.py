@@ -442,11 +442,17 @@ class URL:
             return ''
 
     def decode_proofpoint_v3(self) -> str:
+        # https://urldefense.com/v3/__https://ergorenova-my.sharepoint.com/personal/ggonzalez_ergorenova_com/_layouts/15/guestaccess.aspx?guestaccesstoken=87bQ3upOk7BfSc1LRBCoXPZx1wflxmvg*2bW0ETJ*2bFr6I*3d&docid=1_1c54cd66a40cb40c8a53196c917083c48&wdFormId=*7B513FF8C3*2D15CF*2D4426*2DBCB9*2DB4332B7C276D*7D__;JSUlJSUlJSUl!!KtHZpw!UDuO0BQPf6KclNtFYDb6dQGofNDxtI1cnnS2nFvqnfRgGoTXAN-Pqr1muDirF_cb$
         try:
-            match = re.search(r'v3/__(.+?)__;', self.value, re.IGNORECASE)
-            encoded_url = match.group(1)
-            decoded_url = encoded_url.replace('*', '%')
-            return decoded_url if URL(decoded_url).is_url else ''
+            match = re.search(r'v3/__(.+?)__;(.*?)!', self.value, re.IGNORECASE)
+            embedded_url = match.group(1)
+            base64_characters = match.group(2)
+
+            decoded_characters = base64.b64decode(f'{base64_characters}===').decode('utf-8')
+            for i in range(len(decoded_characters)):
+                embedded_url = embedded_url.replace('*', decoded_characters[i], 1)
+
+            return embedded_url if URL(embedded_url).is_url else ''
         except AttributeError:
             return ''
 
