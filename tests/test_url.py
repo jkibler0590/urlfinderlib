@@ -277,6 +277,15 @@ def test_url_decode_proofpoint_v2():
     assert keyerror_url.decode_proofpoint_v2() == ''
 
 
+def test_url_decode_proofpoint_v3():
+    url = URL('https://urldefense.com/v3/__https://domain.com/index.php?token=1234*2babcd__;asdf!!asdf!asdf-asdf$')
+    assert url.is_proofpoint_v3 is True
+    assert url.child_urls == [URL('https://domain.com/index.php?token=1234%2babcd')]
+
+    error_url = URL('https://urldefense.com/v3/____;')
+    assert error_url.decode_proofpoint_v3() == ''
+
+
 def test_url_get_fragment_values():
     url = URL('https://domain.com/index.php#a=1&b=2&c=3')
     assert url.get_fragment_values() == {'1', '2', '3'}

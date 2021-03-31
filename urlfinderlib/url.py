@@ -77,6 +77,7 @@ class URL:
         self._is_netloc_localhost = None
         self._is_netloc_valid_tld = None
         self._is_proofpoint_v2 = None
+        self._is_proofpoint_v3 = None
         self._is_url = None
         self._is_url_ascii = None
         self._is_valid_format = None
@@ -183,9 +184,19 @@ class URL:
     @property
     def is_proofpoint_v2(self) -> bool:
         if self._is_proofpoint_v2 is None:
-            self._is_proofpoint_v2 = 'urldefense.proofpoint.com/v2' in self.value_lower and 'u' in self.query_dict
+            self._is_proofpoint_v2 = (
+                'urldefense.proofpoint.com/v2' in self.value_lower or 'urldefense.com/v2' in self.value_lower
+            ) and 'u' in self.query_dict
 
         return self._is_proofpoint_v2
+
+    @property
+    def is_proofpoint_v3(self) -> bool:
+        if self._is_proofpoint_v3 is None:
+            self._is_proofpoint_v3 = 'urldefense.proofpoint.com/v3' in self.value_lower or \
+                                     'urldefense.com/v3' in self.value_lower
+
+        return self._is_proofpoint_v3
 
     @property
     def is_url(self) -> bool:
@@ -430,6 +441,15 @@ class URL:
         except KeyError:
             return ''
 
+    def decode_proofpoint_v3(self) -> str:
+        try:
+            match = re.search(r'v3/__(.+?)__;', self.value, re.IGNORECASE)
+            encoded_url = match.group(1)
+            decoded_url = encoded_url.replace('*', '%')
+            return decoded_url if URL(decoded_url).is_url else ''
+        except AttributeError:
+            return ''
+
     def get_base64_urls(self) -> Set[str]:
         fixed_base64_values = {helpers.fix_possible_value(v) for v in self.get_base64_values()}
         return {u for u in fixed_base64_values if URL(u).is_url}
@@ -457,6 +477,9 @@ class URL:
 
         if self.is_proofpoint_v2:
             child_urls.append(self.decode_proofpoint_v2())
+
+        if self.is_proofpoint_v3:
+            child_urls.append(self.decode_proofpoint_v3())
 
         return URLList([URL(u) for u in child_urls])
 
