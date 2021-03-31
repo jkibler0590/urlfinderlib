@@ -273,6 +273,11 @@ def test_url_decode_proofpoint_v2():
     assert url.is_proofpoint_v2 is True
     assert url.child_urls == [URL('http://domain.com')]
 
+    # Test a URL with an incorrect scheme
+    url = URL('https://urldefense.proofpoint.com/v2/url?u=http-3A_domain.com')
+    assert url.is_proofpoint_v2 is True
+    assert url.child_urls == [URL('http://domain.com')]
+
     keyerror_url = URL('https://urldefense.proofpoint.com/v2/url')
     assert keyerror_url.decode_proofpoint_v2() == ''
 
@@ -285,6 +290,11 @@ def test_url_decode_proofpoint_v3():
 
     # Test a URL without any tokens to replace
     url = URL('https://urldefense.com/v3/__https://domain.com/index.php?token=asdf__;!asdf!asdf!asdf-asdf$')
+    assert url.is_proofpoint_v3 is True
+    assert url.child_urls == [URL('https://domain.com/index.php?token=asdf')]
+
+    # Test a URL with an incorrect scheme
+    url = URL('https://urldefense.com/v3/__https:/domain.com/index.php?token=asdf__;!asdf!asdf!asdf-asdf$')
     assert url.is_proofpoint_v3 is True
     assert url.child_urls == [URL('https://domain.com/index.php?token=asdf')]
 

@@ -409,7 +409,7 @@ class URL:
         try:
             outer_json = json.loads(decoded)
             inner_json = json.loads(outer_json['p'])
-            possible_url = inner_json['url']
+            possible_url = helpers.fix_possible_url(inner_json['url'])
             return possible_url if URL(possible_url).is_url else ''
         except json.JSONDecodeError:
             return ''
@@ -437,6 +437,8 @@ class URL:
             for replace_encoded, replace_decoded in replacements.items():
                 possible_url = possible_url.replace(replace_encoded, replace_decoded)
 
+            possible_url = helpers.fix_possible_url(possible_url)
+
             return possible_url if URL(possible_url).is_url else ''
         except KeyError:
             return ''
@@ -451,6 +453,8 @@ class URL:
             decoded_characters = base64.b64decode(f'{base64_characters}===').decode('utf-8')
             for i in range(len(decoded_characters)):
                 embedded_url = embedded_url.replace('*', decoded_characters[i], 1)
+
+            embedded_url = helpers.fix_possible_url(embedded_url)
 
             return embedded_url if URL(embedded_url).is_url else ''
         except AttributeError:
