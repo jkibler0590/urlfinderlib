@@ -35,6 +35,14 @@ class TextUrlFinder:
 
         valid_urls = URLList()
         for token in tokens:
+            # It is common for text files like email plaintext bodies to encode URLs in the form of:
+            # http://domain.com<http://actualdomain.com>
+            # where the text at the beginning is what will be displayed, and the text inside the <> is the
+            # actual URL you will be taken to if you click on it. In these cases, we don't want that entire string
+            # to be considered as a valid URL, but would rather have each of them as separate URLs.
+            if '<' in token and token.endswith('>'):
+                continue
+
             valid_urls.append(helpers.fix_possible_url(token))
 
         return set(valid_urls)
