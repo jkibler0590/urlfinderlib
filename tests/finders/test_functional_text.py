@@ -11,6 +11,7 @@ text = b'''
 'http://domain.com/single_quotes'
  http://domain.com/spaces 
 http://domain.com/lines
+http://domain.com/text<http://domain.com/actual>
 '''
 
 
@@ -26,7 +27,9 @@ def test_find_urls_in_text():
         'http://domain.com/parentheses',
         'http://domain.com/single_quotes',
         'http://domain.com/spaces',
-        'http://domain.com/lines'
+        'http://domain.com/lines',
+        'http://domain.com/text',
+        'http://domain.com/actual',
     }
 
     assert finder.find_urls() == expected_urls
