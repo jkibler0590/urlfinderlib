@@ -284,9 +284,9 @@ def test_url_decode_proofpoint_v2():
 
 def test_url_decode_proofpoint_v3():
     # Test a URL with tokens to replace
-    url = URL('https://urldefense.com/v3/__https://domain.com/index.php?token=asdf*2babcd*2b1234__;JSU!asdf!asdf!asdf-asdf$')
+    url = URL('https://urldefense.com/v3/__https://domain.com/index.php?token=asdf*2babcd*2b1234*a*b__;fn5-fg!asdf!asdf!asdf-asdf$')
     assert url.is_proofpoint_v3 is True
-    assert url.child_urls == [URL('https://domain.com/index.php?token=asdf%2babcd%2b1234')]
+    assert url.child_urls == [URL('https://domain.com/index.php?token=asdf~2babcd~2b1234~a~b')]
 
     # Test a URL without any tokens to replace
     url = URL('https://urldefense.com/v3/__https://domain.com/index.php?token=asdf__;!asdf!asdf!asdf-asdf$')
