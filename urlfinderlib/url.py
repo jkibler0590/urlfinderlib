@@ -1,4 +1,5 @@
 import base64
+import binascii
 import html
 import idna
 import ipaddress
@@ -449,7 +450,7 @@ class URL:
             embedded_url = match.group(1)
             base64_characters = match.group(2)
 
-            decoded_characters = base64.b64decode(f'{base64_characters}===').decode('utf-8')
+            decoded_characters = base64.urlsafe_b64decode(f'{base64_characters}===').decode('utf-8')
             for i in range(len(decoded_characters)):
                 embedded_url = embedded_url.replace('*', decoded_characters[i], 1)
 
