@@ -93,6 +93,9 @@ class HtmlTreeUrlFinder:
         for document_write_url in self._find_document_write_urls():
             valid_urls.append(document_write_url)
 
+        for window_location_url in self._get_window_location_href():
+            valid_urls.append(helpers.fix_possible_url(window_location_url))
+
         for visible_url in self._find_visible_urls():
             valid_urls.append(visible_url)
 
@@ -271,6 +274,9 @@ class HtmlTreeUrlFinder:
             _remove_element_from_tree(tag)
 
         return etree.tostring(new_tree, encoding='utf-8', method='text').decode('utf-8', errors='ignore').strip()
+
+    def _get_window_location_href(self) -> Set[str]:
+        return {match for match in re.findall(r"window\.location\.href\s*?=\s*?['\"](.*?)['\"]", self._string, flags=re.IGNORECASE)}
 
     def _get_xmlns_values(self) -> Set[str]:
         values = {helpers.fix_possible_url(tag.attrib['xmlns']) for tag in self._tree.iterfind('.[@xmlns]')}

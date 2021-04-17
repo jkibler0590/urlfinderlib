@@ -50,6 +50,7 @@ def test_find_urls_html():
         'http://domain4.com/index.php#thing=http://domain5.com',
         'http://domain5.com',
         'https://domain6.com',
+        'https://domain.com/?a=1234',
     }
 
     assert urlfinderlib.find_urls(blob) == expected_urls
