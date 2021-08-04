@@ -1,3 +1,4 @@
+import csv
 import magic
 import re
 import string
@@ -39,7 +40,11 @@ def find_urls(blob: Union[bytes, str], base_url: str = '', mimetype: str = '') -
         if b'xmlns' in blob and b'</' in blob:
             urls += finders.XmlUrlFinder(blob).find_urls()
         elif _is_csv(blob):
-            urls += finders.CsvUrlFinder(blob).find_urls()
+            try:
+                urls += finders.CsvUrlFinder(blob).find_urls()
+            except csv.Error:
+                # not a csv file, try text.
+                urls += finders.TextUrlFinder(blob).find_urls(strict=True)
         elif helpers.might_be_html(blob):
             urls += finders.HtmlUrlFinder(blob).find_urls()
             urls += finders.TextUrlFinder(blob).find_urls(strict=True)
