@@ -1,7 +1,7 @@
 import os
 
 import urlfinderlib
-from urlfinderlib.urlfinderlib import _has_u_escaped_lowercase_bytes, _has_u_escaped_uppercase_bytes, _has_x_escaped_lowercase_bytes, _has_x_escaped_uppercase_bytes, _is_csv, _unescape_ascii
+from urlfinderlib.urlfinderlib import _has_u_escaped_lowercase_bytes, _has_u_escaped_uppercase_bytes, _has_x_escaped_lowercase_bytes, _has_x_escaped_uppercase_bytes, _is_maybe_csv, _unescape_ascii
 
 this_dir = os.path.dirname(os.path.realpath(__file__))
 files_dir = os.path.realpath(f'{this_dir}/files')
@@ -25,6 +25,15 @@ def test_find_urls_csv():
         'http://domain2.com',
         'http://domain3.com'
     }
+
+    assert urlfinderlib.find_urls(blob) == expected_urls
+
+
+def test_find_urls_csv_lookalike():
+    with open(f'{files_dir}/csv_lookalike.txt', 'rb') as f:
+        blob = f.read()
+
+    expected_urls = {'https://example.com'}
 
     assert urlfinderlib.find_urls(blob) == expected_urls
 
@@ -170,9 +179,10 @@ def test_has_x_escaped_uppercase_bytes():
     assert _has_x_escaped_uppercase_bytes(b'This is \\x2a a test') is False
 
 
-def test_is_csv():
-    assert _is_csv(b'This is probably not a valid CSV file.\nIt looks more like a paragraph.') is False
-    assert _is_csv(b'test,test,test\ntest2,test2,test2') is True
+def test_is_maybe_csv():
+    assert _is_maybe_csv(b'') is False
+    assert _is_maybe_csv(b'This is probably, most likely, not a valid CSV file.\nIt looks more like a paragraph.') is False
+    assert _is_maybe_csv(b'test,test,test\ntest2,test2,test2') is True
 
 
 def test_unescape_ascii():
