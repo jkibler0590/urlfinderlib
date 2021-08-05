@@ -1,5 +1,3 @@
-import csv
-import io
 import magic
 import re
 import string
