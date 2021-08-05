@@ -1,4 +1,5 @@
 import csv
+import io
 import magic
 import re
 import string
@@ -39,12 +40,8 @@ def find_urls(blob: Union[bytes, str], base_url: str = '', mimetype: str = '') -
     elif 'text' in mimetype:
         if b'xmlns' in blob and b'</' in blob:
             urls += finders.XmlUrlFinder(blob).find_urls()
-        elif _is_csv(blob):
-            try:
-                urls += finders.CsvUrlFinder(blob).find_urls()
-            except csv.Error:
-                # not a csv file, try text.
-                urls += finders.TextUrlFinder(blob).find_urls(strict=True)
+        elif _is_maybe_csv(blob):
+            urls += finders.CsvUrlFinder(blob).find_urls()
         elif helpers.might_be_html(blob):
             urls += finders.HtmlUrlFinder(blob).find_urls()
             urls += finders.TextUrlFinder(blob).find_urls(strict=True)
@@ -72,13 +69,19 @@ def _has_x_escaped_uppercase_bytes(blob: bytes) -> bool:
     return bool(re.search(r'\\x[A-F0-9]{2}', blob.decode('utf-8', errors='ignore')))
 
 
-def _is_csv(blob: bytes) -> bool:
-    lines = blob.decode('utf-8', errors='ignore').splitlines()[:2]
-    for line in lines:
-        if line.count(',') > 1:
-            return True
+def _is_maybe_csv(blob: bytes) -> bool:
+    lines = blob.decode('utf-8', errors='ignore').splitlines()
 
-    return False
+    if not lines:
+        return False
+
+    # Each line must have at least one comma
+    if not all(',' in l for l in lines):
+        return False
+
+    # Each line must have the same number of commas
+    first_line_commas = lines[0].count(',')
+    return all(l.count(',') == first_line_commas for l in lines)
 
 
 def _unescape_ascii(blob: bytes) -> bytes:
