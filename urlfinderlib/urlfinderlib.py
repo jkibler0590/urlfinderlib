@@ -1,3 +1,4 @@
+import codecs
 import magic
 import re
 import string
@@ -8,6 +9,11 @@ import urlfinderlib.finders as finders
 import urlfinderlib.helpers as helpers
 
 from urlfinderlib.url import URL, URLList
+
+
+def _remove_utf16_chars(blob: bytes) -> bytes:
+    blob = blob.lstrip(codecs.BOM_UTF16)
+    return blob.replace(b'\x00', b'')
 
 
 def get_url_permutations(url: str) -> Set[str]:
@@ -22,6 +28,11 @@ def find_urls(blob: Union[bytes, str], base_url: str = '', mimetype: str = '') -
         mimetype = magic.from_buffer(blob)
     mimetype = mimetype.lower()
 
+    if 'utf-16' in mimetype:
+        blob = _remove_utf16_chars(blob)
+        mimetype = magic.from_buffer(blob)
+    mimetype = mimetype.lower()
+        
     urls = []
 
     if 'rfc 822' in mimetype or 'mail' in mimetype:

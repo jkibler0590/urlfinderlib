@@ -126,6 +126,15 @@ def test_find_urls_text_xml():
     assert urlfinderlib.find_urls(blob) == expected_urls
 
 
+def test_find_urls_looks_like_html():
+    with open(f'{files_dir}/looks_like_html.xml', 'rb') as f:
+        blob = f.read()
+
+    expected_urls = {'https://example.com'}
+
+    assert urlfinderlib.find_urls(blob) == expected_urls
+
+
 def test_find_urls_xml():
     with open(f'{files_dir}/sharedStrings.xml', 'rb') as f:
         blob = f.read()
