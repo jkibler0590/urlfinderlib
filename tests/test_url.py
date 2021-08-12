@@ -131,6 +131,10 @@ def test_get_scheme():
     assert URL('http://dom[ain.com').split_value.scheme == ''
 
 
+def test_idna_percent_encoded():
+    assert URL('http://উদাহরণ.বাংলা:8080/about us/index.html').idna_percent_encoded == 'http://xn--d5b6ci4b4b3a.xn--54b7fta0cc:8080/about%20us/index.html'
+
+
 def test_is_netloc_ipv4():
     valid_ipv4_netloc = [
         'http://1.1.1.1',
