@@ -148,7 +148,7 @@ class URL:
     @property
     def is_mandrillapp(self) -> bool:
         if self._is_mandrillapp is None:
-            self._is_mandrillapp = 'mandrillapp.com' in self.value_lower and 'p' in self.query_dict
+            self._is_mandrillapp = 'mandrillapp.com' in self.split_value.hostname and 'p' in self.query_dict
 
         return self._is_mandrillapp
 
@@ -191,7 +191,7 @@ class URL:
     @property
     def is_proofpoint_v2(self) -> bool:
         if self._is_proofpoint_v2 is None:
-            self._is_proofpoint_v2 = (
+            self._is_proofpoint_v2 = 'urldefense' in self.split_value.hostname and (
                 'urldefense.proofpoint.com/v2' in self.value_lower or 'urldefense.com/v2' in self.value_lower
             ) and 'u' in self.query_dict
 
@@ -200,8 +200,8 @@ class URL:
     @property
     def is_proofpoint_v3(self) -> bool:
         if self._is_proofpoint_v3 is None:
-            self._is_proofpoint_v3 = 'urldefense.proofpoint.com/v3' in self.value_lower or \
-                                     'urldefense.com/v3' in self.value_lower
+            self._is_proofpoint_v3 = 'urldefense' in self.split_value.hostname and (
+                'urldefense.proofpoint.com/v3' in self.value_lower or 'urldefense.com/v3' in self.value_lower)
 
         return self._is_proofpoint_v3
 
