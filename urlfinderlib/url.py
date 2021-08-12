@@ -140,6 +140,12 @@ class URL:
         return self._fragment_dict
 
     @property
+    def idna_percent_encoded(self) -> str:
+        """Returns the URL with the IDNA version of the domain and the percent encoded path"""
+        
+        return f'{self.split_value.scheme}://{self.netloc_idna}{self.path_percent_encoded}' 
+
+    @property
     def is_mandrillapp(self) -> bool:
         if self._is_mandrillapp is None:
             self._is_mandrillapp = 'mandrillapp.com' in self.value_lower and 'p' in self.query_dict
@@ -236,11 +242,13 @@ class URL:
                 return self._netloc_idna
 
             try:
-                self._netloc_idna = idna.encode(self.split_value.netloc).decode('utf-8').lower()
+                idna_hostname = idna.encode(self.split_value.hostname).decode('utf-8').lower()
+                self._netloc_idna = self.split_value.netloc.replace(self.split_value.hostname, idna_hostname)
                 return self._netloc_idna
             except idna.core.IDNAError:
                 try:
-                    self._netloc_idna = self.split_value.netloc.encode('idna').decode('utf-8', errors='ignore').lower()
+                    idna_hostname = self.split_value.hostname.encode('idna').decode('utf-8', errors='ignore').lower()
+                    self._netloc_idna = self.split_value.netloc.replace(self.split_value.hostname, idna_hostname)
                     return self._netloc_idna
                 except UnicodeError:
                     self._netloc_idna = ''
