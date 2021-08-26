@@ -6,7 +6,7 @@ def test_build_url():
 
 
 def test_fix_possible_url():
-    assert helpers.fix_possible_url('//domain.com\\index\u0000.html') == 'http://domain.com/index.html'
+    assert helpers.fix_possible_url('//domain.com\\index\u0000.html') == 'https://domain.com/index.html'
 
 
 def test_fix_possible_value():
@@ -35,7 +35,8 @@ def test_might_be_html():
 
 def test_prepend_missing_scheme():
     assert helpers.prepend_missing_scheme('domain.com') == 'domain.com'
-    assert helpers.prepend_missing_scheme('domain.com/index.html') == 'http://domain.com/index.html'
+    assert helpers.prepend_missing_scheme('domain.com', domain_as_url=True) == 'https://domain.com'
+    assert helpers.prepend_missing_scheme('domain.com/index.html') == 'https://domain.com/index.html'
     assert helpers.prepend_missing_scheme('https://domain.com') == 'https://domain.com'
     assert helpers.prepend_missing_scheme('redis://user:pass@domain.com') == 'redis://user:pass@domain.com'
 

@@ -1,0 +1,7 @@
+This is a domain somefakesite.com inside of a sentence.
+
+This is a URL without a scheme somefakesite.com/index.html
+
+This is a domain between brackets <somefakesite2.com>
+
+This is an email between brackets <admin@somefakesite2.com>
