@@ -55,7 +55,6 @@ class TextUrlFinder:
 
         valid_urls = URLList()
         for token in tokens:
-            print(token)
             # It is common for text files like email plaintext bodies to encode URLs in the form of:
             # http://domain.com<http://actualdomain.com>
             # where the text at the beginning is what will be displayed, and the text inside the <> is the
