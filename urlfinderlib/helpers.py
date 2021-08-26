@@ -8,9 +8,9 @@ def build_url(scheme: str, netloc: str, path: str) -> str:
     return f'{scheme}://{netloc}{path}'
 
 
-def fix_possible_url(value: str) -> str:
+def fix_possible_url(value: str, domain_as_url: bool = False) -> str:
     value = fix_possible_value(value)
-    return value if validators.email(value) else prepend_missing_scheme(value)
+    return value if validators.email(value) else prepend_missing_scheme(value, domain_as_url=domain_as_url)
 
 
 def fix_possible_value(value: str) -> str:
@@ -48,7 +48,7 @@ def might_be_html(value: bytes) -> bool:
     return all(html_character in value for html_character in html_characters)
 
 
-def prepend_missing_scheme(value: str) -> str:
+def prepend_missing_scheme(value: str, domain_as_url: bool = False) -> str:
     value = value.lstrip(':/')
 
     try:
@@ -56,8 +56,12 @@ def prepend_missing_scheme(value: str) -> str:
     except ValueError:
         return value
 
-    if not split_value.scheme and '/' in value:
-        value = f'http://{value}'
+    if domain_as_url:
+        if not split_value.scheme and '.' in value:
+            value = f'https://{value}'
+    else:
+        if not split_value.scheme and '/' in value:
+            value = f'https://{value}'
 
     return value
 

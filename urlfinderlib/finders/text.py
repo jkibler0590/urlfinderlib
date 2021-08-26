@@ -1,3 +1,5 @@
+import validators
+
 from itertools import chain
 from typing import Set, Union
 
@@ -14,7 +16,7 @@ class TextUrlFinder:
 
         self.blob = blob
 
-    def find_urls(self, strict: bool = True) -> Set[str]:
+    def find_urls(self, strict: bool = True, domain_as_url: bool = False) -> Set[str]:
         tok = tokenizer.UTF8Tokenizer(self.blob)
 
         token_iter = chain(
@@ -30,11 +32,30 @@ class TextUrlFinder:
 
         split_token_iter = tok.get_split_tokens_after_replace(['<', '>', '`', '[', ']', '{', '}', '"', "'", '(', ')'])
 
-        tokens = {t for t in token_iter if '.' in t and '/' in t}
-        tokens |= {t for t in split_token_iter if '.' in t and '/' in t}
+        if domain_as_url:
+            tokens = set()
+            for token in token_iter:
+                if '.' in token and '/' in token:
+                    tokens.add(token)
+                    continue
+
+                if validators.domain(token):
+                    tokens.add(token)
+
+            for token in split_token_iter:
+                if '.' in token and '/' in token:
+                    tokens.add(token)
+                    continue
+
+                if validators.domain(token):
+                    tokens.add(token)
+        else:
+            tokens = {t for t in token_iter if '.' in t and '/' in t}
+            tokens |= {t for t in split_token_iter if '.' in t and '/' in t}
 
         valid_urls = URLList()
         for token in tokens:
+            print(token)
             # It is common for text files like email plaintext bodies to encode URLs in the form of:
             # http://domain.com<http://actualdomain.com>
             # where the text at the beginning is what will be displayed, and the text inside the <> is the
@@ -43,6 +64,6 @@ class TextUrlFinder:
             if '<' in token and token.endswith('>'):
                 continue
 
-            valid_urls.append(helpers.fix_possible_url(token))
+            valid_urls.append(helpers.fix_possible_url(token, domain_as_url=domain_as_url))
 
         return set(valid_urls)
