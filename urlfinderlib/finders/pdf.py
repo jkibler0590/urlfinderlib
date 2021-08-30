@@ -1,3 +1,5 @@
+import re
+
 from itertools import chain
 from typing import Set, Union
 
@@ -12,7 +14,8 @@ class PdfUrlFinder:
         if isinstance(blob, str):
             blob = blob.encode('utf-8', errors='ignore')
 
-        self.blob = blob
+        # Replace any stringified hex characters
+        self.blob = re.sub(rb'\\x[a-f0-9]{2,}', b' ', blob)
 
     def find_urls(self) -> Set[str]:
         tok = tokenizer.UTF8Tokenizer(self.blob)
@@ -49,6 +52,11 @@ class PdfUrlFinder:
         urls = URLList()
         for token in token_iter:
             token = token.replace('\\', '')
+
+            # Since various characters in the PDF were replaced with spaces, we assume that there should not
+            # be any spaces in URLs that get extracted.
+            token = token.split()[0]
+
             urls += TextUrlFinder(token).find_urls()
 
         return set(urls)
