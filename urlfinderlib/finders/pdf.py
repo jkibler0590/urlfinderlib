@@ -15,7 +15,7 @@ class PdfUrlFinder:
             blob = blob.encode('utf-8', errors='ignore')
 
         # Replace any stringified hex characters
-        self.blob = re.sub(rb'x[a-f0-9]{2,}', b' ', blob)
+        self.blob = re.sub(rb'\\x[a-f0-9]{2,}', b' ', blob)
 
     def find_urls(self) -> Set[str]:
         tok = tokenizer.UTF8Tokenizer(self.blob)
