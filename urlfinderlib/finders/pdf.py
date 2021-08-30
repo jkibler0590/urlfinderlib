@@ -9,20 +9,6 @@ from .text import TextUrlFinder
 from urlfinderlib.url import URLList
 
 
-# TODO: Make this configurable for all of urlfinderlib so that you can pass in a list of strings
-# to ignore from any URL returned by urlfinderlib.find_urls().
-COMMON_PDR_URL_STRINGS = [
-    'http://ns.adobe.com',
-    'http://www.adobe.com',
-    'http://www.iec.ch',
-    'http://crl.microsoft.com/pki',
-    'http://www.microsoft.com/pki',
-    'http://www.microsoft.com/pkiops',
-    'http://www.microsoft.com/Typography',
-    'http://en.wikipedia.org/wiki/MIT_License',
-]
-
-
 class PdfUrlFinder:
     def __init__(self, blob: Union[bytes, str]):
         if isinstance(blob, str):
@@ -70,9 +56,6 @@ class PdfUrlFinder:
             # Since various characters in the PDF were replaced with spaces, we assume that there should not
             # be any spaces in URLs that get extracted.
             token = token.split()[0]
-
-            if ignore_common_urls and any(common_string in token for common_string in COMMON_PDR_URL_STRINGS):
-                continue
 
             urls += TextUrlFinder(token).find_urls()
 
