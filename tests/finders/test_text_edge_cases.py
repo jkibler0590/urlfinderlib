@@ -54,6 +54,6 @@ def test_url_in_query_value():
 
 
 def test_url_next_to_url():
-    text = 'This is a test click here domain.com/test<https://protect2.fireeye.com/url?u=http://domain.com/test> test.'
+    text = 'This is a test click here domain.com/test<https://protect2.fireeye.com/url?u=https://domain.com/test> test.'
     finder = urlfinderlib.finders.TextUrlFinder(text)
-    assert finder.find_urls() == {'http://domain.com/test', 'https://protect2.fireeye.com/url?u=http://domain.com/test'}
+    assert finder.find_urls() == {'https://domain.com/test', 'https://protect2.fireeye.com/url?u=https://domain.com/test'}

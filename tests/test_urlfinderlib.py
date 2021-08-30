@@ -141,12 +141,25 @@ def test_find_urls_xml():
 
     expected_urls = {
         'http://schemas.openxmlformats.org/spreadsheetml/2006/main',
-        'http://domain.com/test',
+        'https://domain.com/test',
         'http://domain2.com',
         'http://www.w3.org/XML/1998/namespace'
     }
 
     assert urlfinderlib.find_urls(blob) == expected_urls
+
+
+def test_find_urls_domain_as_url():
+    with open(f'{files_dir}/domain_as_url.txt', 'rb') as f:
+        blob = f.read()
+
+    expected_urls = {
+        'https://somefakesite.com',
+        'https://somefakesite.com/index.html',
+        'https://somefakesite2.com'
+    }
+
+    assert urlfinderlib.find_urls(blob, domain_as_url=True) == expected_urls
 
 
 def test_get_url_permutations():
