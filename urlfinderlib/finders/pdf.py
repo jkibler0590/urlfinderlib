@@ -1,3 +1,5 @@
+import re
+
 from itertools import chain
 from typing import Set, Union
 
@@ -7,14 +9,29 @@ from .text import TextUrlFinder
 from urlfinderlib.url import URLList
 
 
+# TODO: Make this configurable for all of urlfinderlib so that you can pass in a list of strings
+# to ignore from any URL returned by urlfinderlib.find_urls().
+COMMON_PDR_URL_STRINGS = [
+    'http://ns.adobe.com',
+    'http://www.adobe.com',
+    'http://www.iec.ch',
+    'http://crl.microsoft.com/pki',
+    'http://www.microsoft.com/pki',
+    'http://www.microsoft.com/pkiops',
+    'http://www.microsoft.com/Typography',
+    'http://en.wikipedia.org/wiki/MIT_License',
+]
+
+
 class PdfUrlFinder:
     def __init__(self, blob: Union[bytes, str]):
         if isinstance(blob, str):
             blob = blob.encode('utf-8', errors='ignore')
 
-        self.blob = blob
+        # Replace any stringified hex characters
+        self.blob = re.sub(rb'x[a-f0-9]{2,}', b' ', blob)
 
-    def find_urls(self) -> Set[str]:
+    def find_urls(self, ignore_common_urls: bool = True) -> Set[str]:
         tok = tokenizer.UTF8Tokenizer(self.blob)
 
         # TODO: itertools.product(*zip(string.lower(), string.upper()))
@@ -49,6 +66,14 @@ class PdfUrlFinder:
         urls = URLList()
         for token in token_iter:
             token = token.replace('\\', '')
+
+            # Since various characters in the PDF were replaced with spaces, we assume that there should not
+            # be any spaces in URLs that get extracted.
+            token = token.split()[0]
+
+            if ignore_common_urls and any(common_string in token for common_string in COMMON_PDR_URL_STRINGS):
+                continue
+
             urls += TextUrlFinder(token).find_urls()
 
         return set(urls)
