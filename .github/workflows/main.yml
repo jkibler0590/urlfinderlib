@@ -32,10 +32,3 @@ jobs:
 
       - name: Pytest & Coverage
         run: pytest
-
-      - name: Upload to Coverage
-        uses: codecov/codecov-action@v2
-        with:
-          skip_existing: true
-          fail_ci_if_error: true
-          verbose: true
