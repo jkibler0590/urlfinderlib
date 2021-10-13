@@ -25,10 +25,7 @@ def fix_possible_value(value: str) -> str:
 
 
 def fix_scheme(value: str) -> str:
-    try:
-        split_value = urlsplit(value)
-    except ValueError:
-        return value
+    split_value = urlsplit(value)
 
     if split_value.scheme and not split_value.netloc and split_value.path:
         return f"{split_value.scheme}://{split_value.path.lstrip('/')}"

@@ -1,0 +1,50 @@
+<html xmlns="http://domain.com/xmlns">
+    <head>
+        <meta HTTP-EQUIV="REFRESH" CONTENT="0; url=http://domain.com/meta">
+    </head>
+
+    <body background="http://domain.com/background">
+        <script>
+            document.write (unescape('<meta HTTP-EQUIV="REFRESH" CONTENT="0; url=http://faß.de/re.php">') ) ;
+        </script>
+
+        <script type="text/javascript">
+            window.location.href = "https:/\domain.com/?a=1234"
+        </script>
+
+        <style>
+            #obf{
+                color: transparent;
+                display: none;
+                height: 0;
+                max-height: 0;
+                max-width: 0;
+                opacity: 0;
+                overflow: hidden;
+                mso-hide: all;
+                visibility: ;
+            }
+        </style>
+
+        <font id="obf">asdf</font>http://domain3.<font id="obf">asdf</font>com
+
+        <form action="http://domain.com/action"></form>
+
+        <div style="background-image: url('http://domain.com/css');"></div>
+
+        <a href="http://domain.com/href"></a>
+
+        <img src="http://domain.com/src">
+
+        <img src="http://domain2.com/image-small.png"
+            srcset="http://domain2.com/image-small.png 320w, http://domain2.com/image-medium.png 800w, http://domain2.com/image-large.png 1200w"
+            sizes="80vw"
+            alt="Image description">
+
+        <a href="http://domain4.com/index.php#thing\x3dhttp://domain5.com">asdf</a>
+
+        <div id="id"></div>
+
+        <button class="btn" onclick="window.location.href='https://domain6.com'">View File</button>
+    </body>
+</html>

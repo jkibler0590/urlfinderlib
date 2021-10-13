@@ -103,8 +103,7 @@ class HtmlTreeUrlFinder:
             valid_urls.append(meta_refresh_value)
 
         possible_urls = set()
-        if self.base_url:
-            possible_urls |= {urljoin(self.base_url, u) for u in self._get_base_url_eligible_values()}
+        possible_urls |= {urljoin(self.base_url, u) for u in self._get_base_url_eligible_values()}
 
         srcset_values = self._get_srcset_values()
         possible_urls = {u for u in possible_urls if not any(srcset_value in u for srcset_value in srcset_values)}
