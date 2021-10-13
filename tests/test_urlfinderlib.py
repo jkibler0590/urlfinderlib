@@ -14,6 +14,20 @@ this_dir = os.path.dirname(os.path.realpath(__file__))
 files_dir = os.path.realpath(f"{this_dir}/files")
 
 
+def test_find_urls_base_url_malformed():
+    with open(f"{files_dir}/base_url_malformed.html", "rb") as f:
+        blob = f.read()
+
+    expected_urls = {
+        "https://t.co",
+        "https://t.co/asdf1234?amp=1",
+        "https://t.co/images/stickman.gif",
+        "https://www.w3schools.com/images/stickman.gif",
+    }
+
+    assert urlfinderlib.find_urls(blob) == expected_urls
+
+
 def test_find_urls_binary():
     with open(f"{files_dir}/hello.bin", "rb") as f:
         blob = f.read()
