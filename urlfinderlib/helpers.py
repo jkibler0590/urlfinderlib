@@ -5,7 +5,7 @@ from urllib.parse import urlsplit
 
 
 def build_url(scheme: str, netloc: str, path: str) -> str:
-    return f'{scheme}://{netloc}{path}'
+    return f"{scheme}://{netloc}{path}"
 
 
 def fix_possible_url(value: str, domain_as_url: bool = False) -> str:
@@ -23,33 +23,33 @@ def fix_possible_value(value: str) -> str:
 
 
 def fix_slashes(value: str) -> str:
-    value = value.replace('\\', '/')
+    value = value.replace("\\", "/")
 
-    if '://' not in value:
-        return value.replace(':/', '://')
+    if "://" not in value:
+        return value.replace(":/", "://")
 
     return value
 
 
 def get_ascii_url(url: str) -> str:
-    return url.encode('ascii', errors='ignore').decode()
+    return url.encode("ascii", errors="ignore").decode()
 
 
 def is_base64_ascii(value: str) -> bool:
     try:
-        base64.b64decode(f'{value}===').decode('ascii')
+        base64.b64decode(f"{value}===").decode("ascii")
         return True
     except:
         return False
 
 
 def might_be_html(value: bytes) -> bool:
-    html_characters = [b'<', b'>', b'=', b':', b'/']
+    html_characters = [b"<", b">", b"=", b":", b"/"]
     return all(html_character in value for html_character in html_characters)
 
 
 def prepend_missing_scheme(value: str, domain_as_url: bool = False) -> str:
-    value = value.lstrip(':/')
+    value = value.lstrip(":/")
 
     try:
         split_value = urlsplit(value)
@@ -57,11 +57,11 @@ def prepend_missing_scheme(value: str, domain_as_url: bool = False) -> str:
         return value
 
     if domain_as_url:
-        if not split_value.scheme and '.' in value:
-            value = f'https://{value}'
+        if not split_value.scheme and "." in value:
+            value = f"https://{value}"
     else:
-        if not split_value.scheme and '/' in value:
-            value = f'https://{value}'
+        if not split_value.scheme and "/" in value:
+            value = f"https://{value}"
 
     return value
 
@@ -79,11 +79,11 @@ def remove_mailto_if_not_email_address(value: str) -> str:
     except ValueError:
         return value
 
-    if split_value.scheme == 'mailto' and not validators.email(split_value.path):
+    if split_value.scheme == "mailto" and not validators.email(split_value.path):
         return value[7:]
 
     return value
 
 
 def remove_null_characters(value: str) -> str:
-    return value.replace('\u0000', '')
+    return value.replace("\u0000", "")

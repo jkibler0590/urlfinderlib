@@ -10,17 +10,17 @@ from urlfinderlib.url import URLList
 class CsvUrlFinder:
     def __init__(self, blob: Union[bytes, str]):
         if isinstance(blob, str):
-            blob = blob.encode('utf-8', errors='ignore')
+            blob = blob.encode("utf-8", errors="ignore")
 
         self.blob = blob
 
     def find_urls(self) -> Set[str]:
-        buffer = io.StringIO(self.blob.decode('utf-8', errors='ignore'))
+        buffer = io.StringIO(self.blob.decode("utf-8", errors="ignore"))
         csv_reader = csv.reader(buffer)
         possible_urls = set()
         for row in csv_reader:
             for item in row:
-                if '.' in item and '/' in item:
+                if "." in item and "/" in item:
                     possible_urls.add(item)
 
         urls = URLList()

@@ -9,7 +9,7 @@ from urlfinderlib.url import URLList
 class DataUrlFinder:
     def __init__(self, blob: Union[bytes, str]):
         if isinstance(blob, str):
-            blob = blob.encode('utf-8', errors='ignore')
+            blob = blob.encode("utf-8", errors="ignore")
 
         self.blob = blob
 
@@ -17,7 +17,7 @@ class DataUrlFinder:
         tok = tokenizer.UTF8Tokenizer(self.blob)
 
         ascii_strings_iter = tok.get_ascii_strings(length=8)
-        possible_url_strings = {s for s in ascii_strings_iter if (':' in s or '/' in s) and '.' in s}
+        possible_url_strings = {s for s in ascii_strings_iter if (":" in s or "/" in s) and "." in s}
 
         urls = URLList()
         for possible_url_string in possible_url_strings:

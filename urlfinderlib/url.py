@@ -15,12 +15,12 @@ from urllib.parse import parse_qs, quote, unquote, urlparse, urlsplit, ParseResu
 import urlfinderlib.helpers as helpers
 
 
-base64_pattern = re.compile(r'(((aHR0c)|(ZnRw))[a-zA-Z0-9]+)')
+base64_pattern = re.compile(r"(((aHR0c)|(ZnRw))[a-zA-Z0-9]+)")
 
 
 # TODO: Change this to inherit from a set
 class URLList(UserList):
-    def __eq__(self, other: Union[list, 'URLList']) -> bool:
+    def __eq__(self, other: Union[list, "URLList"]) -> bool:
         if isinstance(other, list):
             return sorted(self.data) == sorted(other)
         elif isinstance(other, URLList):
@@ -28,7 +28,7 @@ class URLList(UserList):
         else:
             return False
 
-    def append(self, value: Union[str, 'URL']) -> None:
+    def append(self, value: Union[str, "URL"]) -> None:
         if isinstance(value, str):
             value = URL(value)
 
@@ -49,27 +49,30 @@ class URLList(UserList):
                     stack.append(child_url)
 
             return set(all_urls)
-        
+
         return set()
 
-    def remove_partial_urls(self) -> 'URLList':
-        return URLList({
-            url.value for url in self.data if
-            not any(u.value.startswith(url.value) and u != url.value for u in self.data) or
-            not url.split_value.path
-        })
+    def remove_partial_urls(self) -> "URLList":
+        return URLList(
+            {
+                url.value
+                for url in self.data
+                if not any(u.value.startswith(url.value) and u != url.value for u in self.data)
+                or not url.split_value.path
+            }
+        )
 
 
 class URL:
     def __init__(self, value: Union[bytes, str]):
         if isinstance(value, bytes):
-            value = value.decode('utf-8', errors='ignore')
+            value = value.decode("utf-8", errors="ignore")
 
         if isinstance(value, URL):
             value = value.value
 
-        self.value = value.rstrip('/') if value else ''
-        self.value = self.value.rstrip('\\') if self.value else ''
+        self.value = value.rstrip("/") if value else ""
+        self.value = self.value.rstrip("\\") if self.value else ""
 
         self._child_urls = None
         self._fragment_dict = None
@@ -100,33 +103,35 @@ class URL:
         self._split_value = None
         self._value_lower = None
 
-    def __eq__(self, other: Union[bytes, str, 'URL']) -> bool:
+    def __eq__(self, other: Union[bytes, str, "URL"]) -> bool:
         if isinstance(other, str):
             other = URL(other)
         elif isinstance(other, bytes):
-            other = URL(other.decode('utf-8', errors='ignore'))
+            other = URL(other.decode("utf-8", errors="ignore"))
         elif not isinstance(other, URL):
             return False
 
-        return self.value == other.value or any(other_permutation in self.permutations for other_permutation in other.permutations)
+        return self.value == other.value or any(
+            other_permutation in self.permutations for other_permutation in other.permutations
+        )
 
     def __hash__(self) -> int:
         return hash(html.unescape(unquote(self.value)))
 
-    def __lt__(self, other: 'URL') -> bool:
+    def __lt__(self, other: "URL") -> bool:
         if isinstance(other, URL):
             return self.value < other.value
 
         return False
 
     def __repr__(self) -> str:
-        return f'URL: {self.value}'
+        return f"URL: {self.value}"
 
     def __str__(self) -> str:
         return self.value
 
     @property
-    def child_urls(self) -> 'URLList':
+    def child_urls(self) -> "URLList":
         if self._child_urls is None:
             self._child_urls = self.get_child_urls()
 
@@ -142,13 +147,13 @@ class URL:
     @property
     def idna_percent_encoded(self) -> str:
         """Returns the URL with the IDNA version of the domain and the percent encoded path"""
-        
-        return f'{self.split_value.scheme}://{self.netloc_idna}{self.path_percent_encoded}' 
+
+        return f"{self.split_value.scheme}://{self.netloc_idna}{self.path_percent_encoded}"
 
     @property
     def is_mandrillapp(self) -> bool:
         if self._is_mandrillapp is None:
-            self._is_mandrillapp = 'mandrillapp.com' in self.split_value.hostname and 'p' in self.query_dict
+            self._is_mandrillapp = "mandrillapp.com" in self.split_value.hostname and "p" in self.query_dict
 
         return self._is_mandrillapp
 
@@ -174,7 +179,10 @@ class URL:
             if not self.split_value.hostname:
                 self._is_netloc_localhost = False
             else:
-                self._is_netloc_localhost = self.split_value.hostname.lower() == 'localhost' or self.split_value.hostname.lower() == 'localhost.localdomain'
+                self._is_netloc_localhost = (
+                    self.split_value.hostname.lower() == "localhost"
+                    or self.split_value.hostname.lower() == "localhost.localdomain"
+                )
 
         return self._is_netloc_localhost
 
@@ -191,34 +199,39 @@ class URL:
     @property
     def is_proofpoint_v2(self) -> bool:
         if self._is_proofpoint_v2 is None:
-            self._is_proofpoint_v2 = 'urldefense' in self.split_value.hostname and (
-                'urldefense.proofpoint.com/v2' in self.value_lower or 'urldefense.com/v2' in self.value_lower
-            ) and 'u' in self.query_dict
+            self._is_proofpoint_v2 = (
+                "urldefense" in self.split_value.hostname
+                and ("urldefense.proofpoint.com/v2" in self.value_lower or "urldefense.com/v2" in self.value_lower)
+                and "u" in self.query_dict
+            )
 
         return self._is_proofpoint_v2
 
     @property
     def is_proofpoint_v3(self) -> bool:
         if self._is_proofpoint_v3 is None:
-            self._is_proofpoint_v3 = 'urldefense' in self.split_value.hostname and (
-                'urldefense.proofpoint.com/v3' in self.value_lower or 'urldefense.com/v3' in self.value_lower)
+            self._is_proofpoint_v3 = "urldefense" in self.split_value.hostname and (
+                "urldefense.proofpoint.com/v3" in self.value_lower or "urldefense.com/v3" in self.value_lower
+            )
 
         return self._is_proofpoint_v3
 
     @property
     def is_url(self) -> bool:
         if self._is_url is None:
-            if '.' not in self.value or ':' not in self.value or '/' not in self.value:
+            if "." not in self.value or ":" not in self.value or "/" not in self.value:
                 self._is_url = False
             else:
-                self._is_url = (self.is_netloc_valid_tld or self.is_netloc_ipv4 or self.is_netloc_localhost) and self.is_valid_format
+                self._is_url = (
+                    self.is_netloc_valid_tld or self.is_netloc_ipv4 or self.is_netloc_localhost
+                ) and self.is_valid_format
 
         return self._is_url
 
     @property
     def is_url_ascii(self) -> bool:
         if self._is_url_ascii is None:
-            url = self.value.encode('ascii', errors='ignore').decode()
+            url = self.value.encode("ascii", errors="ignore").decode()
             self._is_url_ascii = URL(url).is_url
 
         return self._is_url_ascii
@@ -226,7 +239,7 @@ class URL:
     @property
     def is_valid_format(self) -> bool:
         if self._is_valid_format is None:
-            if not re.match(r'^[a-zA-Z0-9\-\.\:\@]{1,255}$', self.netloc_idna):
+            if not re.match(r"^[a-zA-Z0-9\-\.\:\@]{1,255}$", self.netloc_idna):
                 return False
 
             encoded_url = helpers.build_url(self.split_value.scheme, self.netloc_idna, self.path_percent_encoded)
@@ -242,18 +255,18 @@ class URL:
                 return self._netloc_idna
 
             try:
-                idna_hostname = idna.encode(self.split_value.hostname).decode('utf-8').lower()
+                idna_hostname = idna.encode(self.split_value.hostname).decode("utf-8").lower()
                 self._netloc_idna = self.split_value.netloc.replace(self.split_value.hostname, idna_hostname)
                 return self._netloc_idna
             except idna.core.IDNAError:
                 try:
-                    idna_hostname = self.split_value.hostname.encode('idna').decode('utf-8', errors='ignore').lower()
+                    idna_hostname = self.split_value.hostname.encode("idna").decode("utf-8", errors="ignore").lower()
                     self._netloc_idna = self.split_value.netloc.replace(self.split_value.hostname, idna_hostname)
                     return self._netloc_idna
                 except UnicodeError:
-                    self._netloc_idna = ''
+                    self._netloc_idna = ""
 
-            self._netloc_idna = ''
+            self._netloc_idna = ""
 
         return self._netloc_idna
 
@@ -275,7 +288,7 @@ class URL:
                 self._netloc_unicode = idna.decode(self.split_value.netloc).lower()
                 return self._netloc_unicode
             except idna.core.IDNAError:
-                self._netloc_unicode = self.split_value.netloc.encode('utf-8', errors='ignore').decode('idna').lower()
+                self._netloc_unicode = self.split_value.netloc.encode("utf-8", errors="ignore").decode("idna").lower()
                 return self._netloc_unicode
 
         return self._netloc_unicode
@@ -283,11 +296,7 @@ class URL:
     @property
     def netlocs(self) -> Dict[AnyStr, AnyStr]:
         if self._netlocs is None:
-            self._netlocs = {
-                'idna': self.netloc_idna,
-                'original': self.netloc_original,
-                'unicode': self.netloc_unicode
-            }
+            self._netlocs = {"idna": self.netloc_idna, "original": self.netloc_original, "unicode": self.netloc_unicode}
 
         return self._netlocs
 
@@ -302,7 +311,7 @@ class URL:
     def parse_value(self) -> ParseResult:
         if self._parse_value is None:
             self._parse_value = urlparse(self.value)
-        
+
         return self._parse_value
 
     @property
@@ -333,17 +342,17 @@ class URL:
             query = self.split_value.query
             fragment = self.split_value.fragment
 
-            if (path or query or fragment) and not path.startswith('/'):
-                path = f'/{path}'
+            if (path or query or fragment) and not path.startswith("/"):
+                path = f"/{path}"
 
             if query:
-                path = f'{path}?{query}'
+                path = f"{path}?{query}"
 
             if fragment:
-                path = f'{path}#{fragment}'
+                path = f"{path}#{fragment}"
 
             self._path_original = path
-            
+
         return self._path_original
 
     @property
@@ -361,7 +370,7 @@ class URL:
             The tokenizer will sometimes create tokens that would be considered valid URLs if
             these characters get %-encoded.
             """
-            safe_chars = '/\n\r'
+            safe_chars = "/\n\r"
             self._path_percent_encoded = quote(self.path_all_decoded, safe=safe_chars)
 
         return self._path_percent_encoded
@@ -370,14 +379,14 @@ class URL:
     def paths(self) -> Dict[AnyStr, AnyStr]:
         if self._paths is None:
             self._paths = {
-                'all_decoded': self.path_all_decoded,
-                'original': self.path_original,
-                'html_decoded': self.path_html_decoded,
-                'html_encoded': self.path_html_encoded,
-                'percent_decoded': self.path_percent_decoded,
-                'percent_encoded': self.path_percent_encoded
+                "all_decoded": self.path_all_decoded,
+                "original": self.path_original,
+                "html_decoded": self.path_html_decoded,
+                "html_encoded": self.path_html_encoded,
+                "percent_decoded": self.path_percent_decoded,
+                "percent_encoded": self.path_percent_encoded,
             }
-        
+
         return self._paths
 
     @property
@@ -400,7 +409,7 @@ class URL:
             try:
                 self._split_value = urlsplit(self.value)
             except ValueError:
-                self._split_value = urlsplit('')
+                self._split_value = urlsplit("")
 
         return self._split_value
 
@@ -412,61 +421,54 @@ class URL:
         return self._value_lower
 
     def decode_mandrillapp(self) -> str:
-        base64_string = self.query_dict['p'][0].replace('_', '/')
-        decoded = base64.b64decode(f'{base64_string}===')
+        base64_string = self.query_dict["p"][0].replace("_", "/")
+        decoded = base64.b64decode(f"{base64_string}===")
 
         try:
             outer_json = json.loads(decoded)
-            inner_json = json.loads(outer_json['p'])
-            possible_url = helpers.fix_possible_url(inner_json['url'])
-            return possible_url if URL(possible_url).is_url else ''
+            inner_json = json.loads(outer_json["p"])
+            possible_url = helpers.fix_possible_url(inner_json["url"])
+            return possible_url if URL(possible_url).is_url else ""
         except json.JSONDecodeError:
-            return ''
+            return ""
         except UnicodeDecodeError:
-            return ''
+            return ""
 
     def decode_proofpoint_v2(self) -> str:
         try:
-            query_url = self.query_dict['u'][0]
+            query_url = self.query_dict["u"][0]
 
             # In cases where this URL is encoded multiple times by Proofpoint, we need to replace the "-2D" first,
             # as that represents the "-" character that all of the other character encodings rely on. After this
             # character, it shouldn't matter the order in which the rest of the characters get replaced.
-            possible_url = query_url.replace('-2D', '-')
+            possible_url = query_url.replace("-2D", "-")
 
-            replacements = {
-                '_': '/',
-                '-26': '&',
-                '-3A': ':',
-                '-3D': '=',
-                '-3F': '?',
-                '-5F': '/'
-            }
+            replacements = {"_": "/", "-26": "&", "-3A": ":", "-3D": "=", "-3F": "?", "-5F": "/"}
 
             for replace_encoded, replace_decoded in replacements.items():
                 possible_url = possible_url.replace(replace_encoded, replace_decoded)
 
             possible_url = helpers.fix_possible_url(possible_url)
 
-            return possible_url if URL(possible_url).is_url else ''
+            return possible_url if URL(possible_url).is_url else ""
         except KeyError:
-            return ''
+            return ""
 
     def decode_proofpoint_v3(self) -> str:
         try:
-            match = re.search(r'v3/__(.+?)__;(.*?)!', self.value, re.IGNORECASE)
+            match = re.search(r"v3/__(.+?)__;(.*?)!", self.value, re.IGNORECASE)
             embedded_url = match.group(1)
             base64_characters = match.group(2)
 
-            decoded_characters = base64.urlsafe_b64decode(f'{base64_characters}===').decode('utf-8')
+            decoded_characters = base64.urlsafe_b64decode(f"{base64_characters}===").decode("utf-8")
             for i in range(len(decoded_characters)):
-                embedded_url = embedded_url.replace('*', decoded_characters[i], 1)
+                embedded_url = embedded_url.replace("*", decoded_characters[i], 1)
 
             embedded_url = helpers.fix_possible_url(embedded_url)
 
-            return embedded_url if URL(embedded_url).is_url else ''
+            return embedded_url if URL(embedded_url).is_url else ""
         except AttributeError:
-            return ''
+            return ""
 
     def get_base64_urls(self) -> Set[str]:
         fixed_base64_values = {helpers.fix_possible_value(v) for v in self.get_base64_values()}
@@ -477,11 +479,11 @@ class URL:
 
         for match in base64_pattern.findall(self.path_original):
             if helpers.is_base64_ascii(match[0]):
-                values.add(base64.b64decode(f'{match[0]}===').decode('ascii'))
+                values.add(base64.b64decode(f"{match[0]}===").decode("ascii"))
 
         return values
 
-    def get_child_urls(self) -> 'URLList':
+    def get_child_urls(self) -> "URLList":
         child_urls = []
 
         child_urls += self.get_query_urls()
@@ -514,9 +516,9 @@ class URL:
 
     def get_permutations(self) -> Set[str]:
         return {
-            helpers.build_url(self.split_value.scheme, netloc, path) for netloc in
-            self.netlocs.values() for path in
-            self.paths.values()
+            helpers.build_url(self.split_value.scheme, netloc, path)
+            for netloc in self.netlocs.values()
+            for path in self.paths.values()
         }
 
     def get_query_urls(self) -> Set[str]:

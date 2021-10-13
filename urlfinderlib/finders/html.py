@@ -15,15 +15,15 @@ from .text import TextUrlFinder
 from urlfinderlib import is_url
 from urlfinderlib.url import URLList
 
-warnings.filterwarnings('ignore', category=UserWarning, module='bs4')
+warnings.filterwarnings("ignore", category=UserWarning, module="bs4")
 
 
 def _build_tree(string: str) -> etree.Element:
-    parser = etree.HTMLParser(encoding='utf-8', default_doctype=False)
+    parser = etree.HTMLParser(encoding="utf-8", default_doctype=False)
 
     tree = etree.parse(StringIO(string), parser=parser)
     if tree.getroot() is None:
-        tree = etree.parse(StringIO('<html></html>'), parser=parser)
+        tree = etree.parse(StringIO("<html></html>"), parser=parser)
 
     return tree
 
@@ -34,29 +34,29 @@ def _remove_element_from_tree(element: etree.Element) -> None:
     if element.tail and element.tail.strip():
         prev = element.getprevious()
         if prev is not None:
-            prev.tail = (prev.tail or '') + element.tail
+            prev.tail = (prev.tail or "") + element.tail
         else:
-            parent.text = (parent.text or '') + element.tail
+            parent.text = (parent.text or "") + element.tail
 
     parent.remove(element)
 
 
 def _remove_obfuscating_font_tags_from_tree(tree: etree.Element) -> None:
-    for tag in tree.iterfind('.//font[@id]'):
+    for tag in tree.iterfind(".//font[@id]"):
         if len(tag.items()) == 1:
             _remove_element_from_tree(tag)
 
 
 class HtmlUrlFinder:
-    def __init__(self, blob: Union[bytes, str], base_url: str = ''):
+    def __init__(self, blob: Union[bytes, str], base_url: str = ""):
         if isinstance(blob, str):
-            blob = blob.encode('utf-8', errors='ignore')
+            blob = blob.encode("utf-8", errors="ignore")
 
         self._base_url = base_url
 
-        utf8_string = helpers.remove_null_characters(blob.decode('utf-8', errors='ignore'))
+        utf8_string = helpers.remove_null_characters(blob.decode("utf-8", errors="ignore"))
         decoded_utf8_string = html.unescape(unquote(utf8_string))
-        
+
         self._strings = [utf8_string]
         if decoded_utf8_string != utf8_string:
             self._strings.append(decoded_utf8_string)
@@ -70,7 +70,7 @@ class HtmlUrlFinder:
 
 
 class HtmlTreeUrlFinder:
-    def __init__(self, string: str, base_url: str = ''):
+    def __init__(self, string: str, base_url: str = ""):
         self._base_url = None
         self._given_base_url = base_url
         self._string = string
@@ -85,7 +85,7 @@ class HtmlTreeUrlFinder:
 
     @property
     def tree_string(self):
-        return unquote(etree.tostring(self._tree, encoding='unicode', method='html'))
+        return unquote(etree.tostring(self._tree, encoding="unicode", method="html"))
 
     def find_urls(self) -> Set[str]:
         valid_urls = URLList()
@@ -121,15 +121,12 @@ class HtmlTreeUrlFinder:
         token_iter = chain(
             tok.get_tokens_between_open_and_close_sequence('"http', '"', strict=True),
             tok.get_tokens_between_open_and_close_sequence('"ftp', '"', strict=True),
-
             tok.get_tokens_between_open_and_close_sequence("'http", "'", strict=True),
             tok.get_tokens_between_open_and_close_sequence("'ftp", "'", strict=True),
-
             tok.get_tokens_between_open_and_close_sequence('"HTTP', '"', strict=True),
             tok.get_tokens_between_open_and_close_sequence('"FTP', '"', strict=True),
-
             tok.get_tokens_between_open_and_close_sequence("'HTTP", "'", strict=True),
-            tok.get_tokens_between_open_and_close_sequence("'FTP", "'", strict=True)
+            tok.get_tokens_between_open_and_close_sequence("'FTP", "'", strict=True),
         )
 
         for token in token_iter:
@@ -149,7 +146,7 @@ class HtmlTreeUrlFinder:
 
     def _find_visible_urls(self) -> Set[str]:
         visible_text = self._get_visible_text()
-        possible_urls = {line for line in visible_text.splitlines() if '.' in line and '/' in line}
+        possible_urls = {line for line in visible_text.splitlines() if "." in line and "/" in line}
 
         urls = URLList()
         for possible_url in possible_urls:
@@ -159,25 +156,25 @@ class HtmlTreeUrlFinder:
 
     def _get_action_values(self) -> Set[str]:
         values = set()
-        for tag in self._tree.iterfind('.//*[@action]'):
-            values.add(helpers.fix_possible_url(tag.attrib['action']))
-            tag.attrib['action'] = ''
+        for tag in self._tree.iterfind(".//*[@action]"):
+            values.add(helpers.fix_possible_url(tag.attrib["action"]))
+            tag.attrib["action"] = ""
         return values
 
     def _get_background_values(self) -> Set[str]:
         values = set()
-        for tag in self._tree.iterfind('.//*[@background]'):
-            values.add(helpers.fix_possible_url(tag.attrib['background']))
-            tag.attrib['background'] = ''
+        for tag in self._tree.iterfind(".//*[@background]"):
+            values.add(helpers.fix_possible_url(tag.attrib["background"]))
+            tag.attrib["background"] = ""
         return values
 
     def _get_base_url_from_html(self) -> str:
-        tag = self._tree.find('.//base[@href]')
+        tag = self._tree.find(".//base[@href]")
         if tag is not None:
-            base_url = helpers.fix_possible_url(tag.attrib['href'])
-            return base_url if is_url(base_url) else ''
+            base_url = helpers.fix_possible_url(tag.attrib["href"])
+            return base_url if is_url(base_url) else ""
 
-        return ''
+        return ""
 
     def _get_base_url_eligible_values(self) -> Set[str]:
         values = set()
@@ -191,8 +188,9 @@ class HtmlTreeUrlFinder:
         return values
 
     def _get_css_url_values(self) -> Set[str]:
-        return {match for match in
-                re.findall(r"url\s*\(\s*[\'\"]?(.*?)[\'\"]?\s*\)", self._string, flags=re.IGNORECASE)}
+        return {
+            match for match in re.findall(r"url\s*\(\s*[\'\"]?(.*?)[\'\"]?\s*\)", self._string, flags=re.IGNORECASE)
+        }
 
     def _get_document_writes(self) -> Set[str]:
         return {match for match in re.findall(r"document\.write\s*\(.*?\)\s*;", self._string, flags=re.IGNORECASE)}
@@ -202,28 +200,28 @@ class HtmlTreeUrlFinder:
         document_writes_contents = set()
 
         for document_write in document_writes:
-            write_begin_index = document_write.rfind('(')
-            write_end_index = document_write.find(')')
-            write_content = document_write[write_begin_index + 1:write_end_index]
+            write_begin_index = document_write.rfind("(")
+            write_end_index = document_write.find(")")
+            write_content = document_write[write_begin_index + 1 : write_end_index]
             document_writes_contents.add(helpers.fix_possible_value(write_content))
 
         return {contents for contents in document_writes_contents if contents}
 
     def _get_href_values(self) -> Set[str]:
         values = set()
-        for tag in self._tree.iterfind('.//*[@href]'):
-            values.add(helpers.fix_possible_url(tag.attrib['href']))
-            tag.attrib['href'] = ''
+        for tag in self._tree.iterfind(".//*[@href]"):
+            values.add(helpers.fix_possible_url(tag.attrib["href"]))
+            tag.attrib["href"] = ""
 
         return values
 
     def _get_meta_refresh_values(self) -> Set[str]:
         values = set()
 
-        for tag in self._tree.iterfind('.//meta[@http-equiv][@content]'):
-            value = tag.attrib['content']
-            if 'url=' in value.lower():
-                value = value.partition('=')[2].strip()
+        for tag in self._tree.iterfind(".//meta[@http-equiv][@content]"):
+            value = tag.attrib["content"]
+            if "url=" in value.lower():
+                value = value.partition("=")[2].strip()
                 value = helpers.fix_possible_value(value)
                 values.add(value)
 
@@ -231,19 +229,19 @@ class HtmlTreeUrlFinder:
 
     def _get_src_values(self) -> Set[str]:
         values = set()
-        for tag in self._tree.iterfind('.//*[@src]'):
-            values.add(helpers.fix_possible_url(tag.attrib['src']))
-            tag.attrib['src'] = ''
+        for tag in self._tree.iterfind(".//*[@src]"):
+            values.add(helpers.fix_possible_url(tag.attrib["src"]))
+            tag.attrib["src"] = ""
         return values
 
     def _get_srcset_values(self) -> Set[str]:
         values = set()
-        for tag in self._tree.iterfind('.//*[@srcset]'):
-            value = helpers.fix_possible_url(tag.attrib['srcset'])
-            splits = value.split(',')
-            values |= {s.strip().split(' ')[0] for s in splits}
+        for tag in self._tree.iterfind(".//*[@srcset]"):
+            value = helpers.fix_possible_url(tag.attrib["srcset"])
+            splits = value.split(",")
+            values |= {s.strip().split(" ")[0] for s in splits}
 
-            tag.attrib['srcset'] = ''
+            tag.attrib["srcset"] = ""
 
         return values
 
@@ -256,10 +254,10 @@ class HtmlTreeUrlFinder:
             for attrib in element.attrib:
                 # Ignore the "onclick" attribute since that contains JavaScript. By not replacing this value, it lets
                 # the TextUrlFinder attempt to extract URLs from it instead since it is not parsed by lxml.
-                if attrib.lower() == 'onclick':
+                if attrib.lower() == "onclick":
                     continue
 
-                element.attrib[attrib] = ''
+                element.attrib[attrib] = ""
 
         return values
 
@@ -267,20 +265,25 @@ class HtmlTreeUrlFinder:
         new_tree = _build_tree(self._string)
         _remove_obfuscating_font_tags_from_tree(new_tree)
 
-        for tag in new_tree.iterfind('.//script'):
+        for tag in new_tree.iterfind(".//script"):
             _remove_element_from_tree(tag)
 
-        for tag in new_tree.iterfind('.//style'):
+        for tag in new_tree.iterfind(".//style"):
             _remove_element_from_tree(tag)
 
-        return etree.tostring(new_tree, encoding='utf-8', method='text').decode('utf-8', errors='ignore').strip()
+        return etree.tostring(new_tree, encoding="utf-8", method="text").decode("utf-8", errors="ignore").strip()
 
     def _get_window_location_href(self) -> Set[str]:
-        return {match for match in re.findall(r"window\.location\.href\s*?=\s*?['\"](.*?)['\"]", self._string, flags=re.IGNORECASE)}
+        return {
+            match
+            for match in re.findall(
+                r"window\.location\.href\s*?=\s*?['\"](.*?)['\"]", self._string, flags=re.IGNORECASE
+            )
+        }
 
     def _get_xmlns_values(self) -> Set[str]:
-        values = {helpers.fix_possible_url(tag.attrib['xmlns']) for tag in self._tree.iterfind('.[@xmlns]')}
-        values |= {helpers.fix_possible_url(tag.attrib['xmlns']) for tag in self._tree.iterfind('.//*[@xmlns]')}
+        values = {helpers.fix_possible_url(tag.attrib["xmlns"]) for tag in self._tree.iterfind(".[@xmlns]")}
+        values |= {helpers.fix_possible_url(tag.attrib["xmlns"]) for tag in self._tree.iterfind(".//*[@xmlns]")}
         return values
 
     def _pick_base_url(self, given_base_url: str) -> str:

@@ -8,7 +8,7 @@ from urlfinderlib.url import URLList
 class XmlUrlFinder:
     def __init__(self, string: Union[bytes, str]):
         if isinstance(string, bytes):
-            string = string.decode('utf-8', errors='ignore')
+            string = string.decode("utf-8", errors="ignore")
 
         try:
             self._root = cElementTree.fromstring(string)
@@ -17,8 +17,8 @@ class XmlUrlFinder:
 
     def find_urls(self) -> Set[str]:
         possible_urls = {str(self._root)}
-        possible_urls |= {v for v in self._get_all_attribute_values() if v and '.' in v and '/' in v}
-        possible_urls |= {t for t in self._get_all_text() if t and '.' in t and '/' in t}
+        possible_urls |= {v for v in self._get_all_attribute_values() if v and "." in v and "/" in v}
+        possible_urls |= {t for t in self._get_all_text() if t and "." in t and "/" in t}
 
         urls = URLList()
         for possible_url in possible_urls:
