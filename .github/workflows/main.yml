@@ -10,12 +10,9 @@ on:
 
 # All of the jobs run in parallel, but each step within a job is sequential
 jobs:
-  api:
+  urlfinderlib:
+  name: Tests
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: [ '3.6', '3.7', '3.8', '3.9' ]
-    name: Python ${{ matrix.python-version }} tests
 
     steps:
       - name: Checkout code
@@ -24,8 +21,7 @@ jobs:
       - name: Setup python
         uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.python-version }}
-          architecture: x64
+          python-version: '3.9'
 
       - name: Install Python dependencies
         uses: py-actions/py-dependency-install@v2
