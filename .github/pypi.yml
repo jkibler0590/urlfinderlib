@@ -1,10 +1,7 @@
 name: Publish to PyPI
 
-# Runs only when code is merged into the main branch
-on:
-  push:
-    branches:
-      - main
+# Runs only when code is merged
+on: push
 
 jobs:
   deploy:
@@ -18,7 +15,25 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Install pypa/build
+        run: >-
+          python -m
+          pip install
+          build
+          --user
+
+      - name: Build a binary wheel and a source tarball
+        run: >-
+          python -m
+          build
+          --sdist
+          --wheel
+          --outdir dist/
+          .
+
+      # Only runs if the commit is tagged
       - name: Publish to PyPI
+        if: startsWith(github.ref, 'refs/tags')
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           user: __token__
