@@ -157,14 +157,20 @@ class HtmlTreeUrlFinder:
     def _get_action_values(self) -> Set[str]:
         values = set()
         for tag in self._tree.iterfind(".//*[@action]"):
-            values.add(helpers.fix_possible_url(tag.attrib["action"]))
+            if self.base_url:
+                values.add(helpers.fix_possible_value(tag.attrib["action"]))
+            else:
+                values.add(helpers.fix_possible_url(tag.attrib["action"]))
             tag.attrib["action"] = ""
         return values
 
     def _get_background_values(self) -> Set[str]:
         values = set()
         for tag in self._tree.iterfind(".//*[@background]"):
-            values.add(helpers.fix_possible_url(tag.attrib["background"]))
+            if self.base_url:
+                values.add(helpers.fix_possible_value(tag.attrib["background"]))
+            else:
+                values.add(helpers.fix_possible_url(tag.attrib["background"]))
             tag.attrib["background"] = ""
         return values
 
@@ -210,9 +216,11 @@ class HtmlTreeUrlFinder:
     def _get_href_values(self) -> Set[str]:
         values = set()
         for tag in self._tree.iterfind(".//*[@href]"):
-            values.add(helpers.fix_possible_url(tag.attrib["href"]))
+            if self.base_url:
+                values.add(helpers.fix_possible_value(tag.attrib["href"]))
+            else:
+                values.add(helpers.fix_possible_url(tag.attrib["href"]))
             tag.attrib["href"] = ""
-
         return values
 
     def _get_meta_refresh_values(self) -> Set[str]:
@@ -230,7 +238,10 @@ class HtmlTreeUrlFinder:
     def _get_src_values(self) -> Set[str]:
         values = set()
         for tag in self._tree.iterfind(".//*[@src]"):
-            values.add(helpers.fix_possible_url(tag.attrib["src"]))
+            if self.base_url:
+                values.add(helpers.fix_possible_value(tag.attrib["src"]))
+            else:
+                values.add(helpers.fix_possible_url(tag.attrib["src"]))
             tag.attrib["src"] = ""
         return values
 
