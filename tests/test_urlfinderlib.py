@@ -82,6 +82,32 @@ def test_find_urls_html():
     assert urlfinderlib.find_urls(blob) == expected_urls
 
 
+def test_find_urls_html_no_base_url():
+    with open(f"{files_dir}/test_no_base_url.html", "rb") as f:
+        blob = f.read()
+
+    expected_urls = {
+        "http://domain.com/action",
+        "http://domain.com/background",
+        "http://domain.com/css",
+        "http://domain.com/href",
+        "http://domain.com/meta",
+        "http://domain.com/src",
+        "http://domain.com/xmlns",
+        "http://domain3.com",
+        "http://faß.de/re.php",
+        "http://domain2.com/image-small.png",
+        "http://domain2.com/image-medium.png",
+        "http://domain2.com/image-large.png",
+        "http://domain4.com/index.php#thing=http://domain5.com",
+        "http://domain5.com",
+        "https://domain6.com",
+        "https://domain.com/?a=1234",
+    }
+
+    assert urlfinderlib.find_urls(blob) == expected_urls
+
+
 def test_find_urls_ical():
     with open(f"{files_dir}/test.ical", "rb") as f:
         blob = f.read()
