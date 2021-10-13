@@ -11,7 +11,7 @@ on:
 # All of the jobs run in parallel, but each step within a job is sequential
 jobs:
   urlfinderlib:
-  name: Tests
+    name: Tests
     runs-on: ubuntu-latest
 
     steps:
