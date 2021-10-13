@@ -12,7 +12,7 @@ from urlfinderlib.url import URLList
 class TextUrlFinder:
     def __init__(self, blob: Union[bytes, str]):
         if isinstance(blob, str):
-            blob = blob.encode('utf-8', errors='ignore')
+            blob = blob.encode("utf-8", errors="ignore")
 
         self.blob = blob
 
@@ -27,15 +27,15 @@ class TextUrlFinder:
             tok.get_tokens_between_curly_brackets(strict=strict),
             tok.get_tokens_between_double_quotes(),
             tok.get_tokens_between_parentheses(strict=strict),
-            tok.get_tokens_between_single_quotes()
+            tok.get_tokens_between_single_quotes(),
         )
 
-        split_token_iter = tok.get_split_tokens_after_replace(['<', '>', '`', '[', ']', '{', '}', '"', "'", '(', ')'])
+        split_token_iter = tok.get_split_tokens_after_replace(["<", ">", "`", "[", "]", "{", "}", '"', "'", "(", ")"])
 
         if domain_as_url:
             tokens = set()
             for token in token_iter:
-                if '.' in token and '/' in token:
+                if "." in token and "/" in token:
                     tokens.add(token)
                     continue
 
@@ -43,15 +43,15 @@ class TextUrlFinder:
                     tokens.add(token)
 
             for token in split_token_iter:
-                if '.' in token and '/' in token:
+                if "." in token and "/" in token:
                     tokens.add(token)
                     continue
 
                 if validators.domain(token):
                     tokens.add(token)
         else:
-            tokens = {t for t in token_iter if '.' in t and '/' in t}
-            tokens |= {t for t in split_token_iter if '.' in t and '/' in t}
+            tokens = {t for t in token_iter if "." in t and "/" in t}
+            tokens |= {t for t in split_token_iter if "." in t and "/" in t}
 
         valid_urls = URLList()
         for token in tokens:
@@ -60,7 +60,7 @@ class TextUrlFinder:
             # where the text at the beginning is what will be displayed, and the text inside the <> is the
             # actual URL you will be taken to if you click on it. In these cases, we don't want that entire string
             # to be considered as a valid URL, but would rather have each of them as separate URLs.
-            if '<' in token and token.endswith('>'):
+            if "<" in token and token.endswith(">"):
                 continue
 
             valid_urls.append(helpers.fix_possible_url(token, domain_as_url=domain_as_url))
