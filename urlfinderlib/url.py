@@ -15,7 +15,10 @@ from urllib.parse import parse_qs, quote, unquote, urlparse, urlsplit, ParseResu
 import urlfinderlib.helpers as helpers
 
 
-base64_pattern = re.compile(r"(((aHR0c)|(ZnRw))[a-zA-Z0-9]+)")
+# The base64 strings we want are usually preceeded by a character in the URL such as: ", ', #, or /
+# If these were not at the beginning of the regex statement, we would find additional URLs, but they
+# are often malformed when decoded, as they are burried inside of a larger URL encoding scheme.
+base64_pattern = re.compile(r"[\"\'\#\/](((aHR0c)|(ZnRw))[a-zA-Z0-9]+)")
 
 
 # TODO: Change this to inherit from a set
