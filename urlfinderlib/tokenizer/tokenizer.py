@@ -25,6 +25,9 @@ class UTF8Tokenizer:
         pattern = b"[\x20-\x7E]{%b,}" % str(length).encode("ascii", errors="ignore")
         return (x.group(0).decode("ascii") for x in re.finditer(pattern, self.blob))
 
+    def get_sentences(self) -> Iterator[str]:
+        return (x.group(1) for x in re.finditer(r"(.*?)[.!?]\s", self.utf8_string))
+
     def get_tokens_between_angle_brackets(self, strict: bool = True) -> Iterator[str]:
         return self.get_tokens_between_open_and_close_sequence("<", ">", strict=strict)
 
