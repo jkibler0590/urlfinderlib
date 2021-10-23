@@ -28,6 +28,7 @@ class TextUrlFinder:
             tok.get_tokens_between_double_quotes(),
             tok.get_tokens_between_parentheses(strict=strict),
             tok.get_tokens_between_single_quotes(),
+            tok.get_sentences(),
         )
 
         split_token_iter = tok.get_split_tokens_after_replace(["<", ">", "`", "[", "]", "{", "}", '"', "'", "(", ")"])
