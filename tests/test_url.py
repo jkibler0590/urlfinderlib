@@ -291,6 +291,12 @@ def test_url_decode_proofpoint_v3():
     error_url = URL("https://urldefense.com/v3/____;")
     assert error_url.decode_proofpoint_v3() == ""
 
+    # Test a URL that has more than 1 asterisk token
+    url = URL(
+        "https://urldefense.com/v3/__https://link.edgepilot.com/s/822cebfe/5ZxIVsowtUueiP3V0OatBg?u=https:**Ago.microsoft.com*fwlink**ALinkid=844050__;Ly8vLz8!!NAqySMJg!B2KGwyFP3G5bqSRMBCEyMq9ccomB-Bybhf53qbl7ZlsYnJ3UKkAO0beFX-yj1V-raXJsLn3FHZlSQTjIvxO4_2Y$"
+    )
+    assert url.is_proofpoint_v3 is True
+    assert url.child_urls == ["https://link.edgepilot.com/s/822cebfe/5ZxIVsowtUueiP3V0OatBg?u=https://go.microsoft.com/fwlink/?Linkid=844050"]
 
 def test_url_get_fragment_values():
     url = URL("https://domain.com/index.php#a=1&b=2&c=3")

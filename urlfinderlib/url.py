@@ -7,7 +7,7 @@ import json
 import re
 import tld
 import validators
-
+import string
 from collections import UserList
 from typing import AnyStr, Dict, List, Set, Union
 from urllib.parse import parse_qs, quote, unquote, urlparse, urlsplit, ParseResult, SplitResult
@@ -438,38 +438,73 @@ class URL:
             return ""
 
     def decode_proofpoint_v2(self) -> str:
+        maketrans = str.maketrans
+        trans = maketrans('-_', '%/')
         try:
             query_url = self.query_dict["u"][0]
+            url_encoded_url = query_url.translate(trans)
+            html_encoded_url = unquote(url_encoded_url)
+            url = html.unescape(html_encoded_url)
 
-            # In cases where this URL is encoded multiple times by Proofpoint, we need to replace the "-2D" first,
-            # as that represents the "-" character that all of the other character encodings rely on. After this
-            # character, it shouldn't matter the order in which the rest of the characters get replaced.
-            possible_url = query_url.replace("-2D", "-")
-
-            replacements = {"_": "/", "-26": "&", "-3A": ":", "-3D": "=", "-3F": "?", "-5F": "/"}
-
-            for replace_encoded, replace_decoded in replacements.items():
-                possible_url = possible_url.replace(replace_encoded, replace_decoded)
-
-            possible_url = helpers.fix_possible_url(possible_url)
-
+            possible_url = helpers.fix_possible_url(url)
             return possible_url if URL(possible_url).is_url else ""
         except KeyError:
             return ""
 
+    # Official decoder code from Proofpoint 
+    # https://help.proofpoint.com/@api/deki/files/2775/urldecoder.py?revision=1
     def decode_proofpoint_v3(self) -> str:
+        v3_single_slash = re.compile(r"^([a-z0-9+.-]+:/)([^/].+)", re.IGNORECASE)
+        v3_run_mapping = {}
+        run_values = string.ascii_uppercase + string.ascii_lowercase + string.digits + '-' + '_'
+        run_length = 2
+        for value in run_values:
+            v3_run_mapping[value] = run_length
+            run_length += 1
+
+        def replace_token(token):
+            nonlocal current_marker
+            nonlocal decoded_characters
+            nonlocal v3_run_mapping
+            if token == '*':
+                character = decoded_characters[current_marker]
+                current_marker += 1
+                return character
+            if token.startswith('**'):
+                run_length = v3_run_mapping[token[-1]]
+                run = decoded_characters[current_marker:current_marker + run_length]
+                current_marker += run_length
+                return run
+
+        def substitute_tokens(text, start_pos=0):
+            v3_token_pattern = re.compile(r"\*(\*.)?")
+            match = v3_token_pattern.search(text, start_pos)
+            if match:
+                start = text[start_pos:match.start()]
+                built_string = start
+                token = text[match.start():match.end()]
+                built_string += replace_token(token)
+                built_string += substitute_tokens(text, match.end())
+                return built_string
+            else:
+                return text[start_pos:len(text)]
         try:
             match = re.search(r"v3/__(.+?)__;(.*?)!", self.value, re.IGNORECASE)
             embedded_url = match.group(1)
             base64_characters = match.group(2)
 
-            decoded_characters = base64.urlsafe_b64decode(f"{base64_characters}===").decode("utf-8")
-            for i in range(len(decoded_characters)):
-                embedded_url = embedded_url.replace("*", decoded_characters[i], 1)
+            single_slash = v3_single_slash.findall(embedded_url)
+            if single_slash and len(single_slash[0]) == 2:
+                embedded_url = single_slash[0][0] + "/" + single_slash[0][1]
+            embedded_url = unquote(embedded_url)
 
-            embedded_url = helpers.fix_possible_url(embedded_url)
+            base64_characters += '=='
+            decoded_characters = base64.urlsafe_b64decode(base64_characters).decode("utf-8")
+            current_marker = 0
 
-            return embedded_url if URL(embedded_url).is_url else ""
+            decoded_url = substitute_tokens(embedded_url)
+            decoded_url = helpers.fix_possible_url(decoded_url)
+            return decoded_url if URL(decoded_url).is_url else ""
         except AttributeError:
             return ""
 
