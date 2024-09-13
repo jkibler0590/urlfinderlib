@@ -451,62 +451,200 @@ class URL:
         except KeyError:
             return ""
 
-    # Official decoder code from Proofpoint 
-    # https://help.proofpoint.com/@api/deki/files/2775/urldecoder.py?revision=1
-    def decode_proofpoint_v3(self) -> str:
-        v3_single_slash = re.compile(r"^([a-z0-9+.-]+:/)([^/].+)", re.IGNORECASE)
-        v3_run_mapping = {}
-        run_values = string.ascii_uppercase + string.ascii_lowercase + string.digits + '-' + '_'
-        run_length = 2
-        for value in run_values:
-            v3_run_mapping[value] = run_length
-            run_length += 1
 
-        def replace_token(token):
-            nonlocal current_marker
-            nonlocal decoded_characters
-            nonlocal v3_run_mapping
-            if token == '*':
-                character = decoded_characters[current_marker]
-                current_marker += 1
-                return character
-            if token.startswith('**'):
-                run_length = v3_run_mapping[token[-1]]
-                run = decoded_characters[current_marker:current_marker + run_length]
-                current_marker += run_length
-                return run
+    def decode_proofpoint_v3(self, unquote_url=False):
+        replacement_str_mapping = {
+            "A": 2,
+            "B": 3,
+            "C": 4,
+            "D": 5,
+            "E": 6,
+            "F": 7,
+            "G": 8,
+            "H": 9,
+            "I": 10,
+            "J": 11,
+            "K": 12,
+            "L": 13,
+            "M": 14,
+            "N": 15,
+            "O": 16,
+            "P": 17,
+            "Q": 18,
+            "R": 19,
+            "S": 20,
+            "T": 21,
+            "U": 22,
+            "V": 23,
+            "W": 24,
+            "X": 25,
+            "Y": 26,
+            "Z": 27,
+            "a": 28,
+            "b": 29,
+            "c": 30,
+            "d": 31,
+            "e": 32,
+            "f": 33,
+            "g": 34,
+            "h": 35,
+            "i": 36,
+            "j": 37,
+            "k": 38,
+            "l": 39,
+            "m": 40,
+            "n": 41,
+            "o": 42,
+            "p": 43,
+            "q": 44,
+            "r": 45,
+            "s": 46,
+            "t": 47,
+            "u": 48,
+            "v": 49,
+            "w": 50,
+            "x": 51,
+            "y": 52,
+            "z": 53,
+            "0": 54,
+            "1": 55,
+            "2": 56,
+            "3": 57,
+            "4": 58,
+            "5": 59,
+            "6": 60,
+            "7": 61,
+            "8": 62,
+            "9": 63,
+            "-": 64,
+            "_": 65,
+        }
+        # we don't use urlparse here because the mangled url confuses the function
+        # (e.g., it's not sure if the query belongs to the inner or our URL)
+        parsed_url = self.value
 
-        def substitute_tokens(text, start_pos=0):
-            v3_token_pattern = re.compile(r"\*(\*.)?")
-            match = v3_token_pattern.search(text, start_pos)
-            if match:
-                start = text[start_pos:match.start()]
-                built_string = start
-                token = text[match.start():match.end()]
-                built_string += replace_token(token)
-                built_string += substitute_tokens(text, match.end())
-                return built_string
+        # extract URL between `__`s (e.g., /v3/__https://www.example.com__;Iw!![organization_id]![unique_identifier]$)
+        p = re.compile("__(.*)__;(.*)!!")
+        ps = p.search(parsed_url)
+
+        if ps is None:
+            # return as is
+            return parsed_url
+
+        url = ps.group(1)
+
+        # get string of b64-encoded replacement characters (e.g., "Iw" in  /v3/__https://www.example.com__;Iw!![organization_id]![unique_identifier]$)
+        replacement_b64 = ps.group(2)
+
+        # if the replacement string is empty, return extracted URL
+        if len(replacement_b64) == 0:
+            return url
+
+        # base64 decode replacement string
+        #
+        # use `urlsafe_b64decode` as the base64-encoded string
+        # uses - and _ instead of + and /, respectively.
+        #
+        # See Section 5 in RFC4648
+        # <https://www.rfc-editor.org/rfc/rfc4648.html#page-7>.
+        replacement_str = (base64.urlsafe_b64decode(replacement_b64 + "==")).decode(
+            "utf-8"
+        )  # b64decode ignores any extra padding
+
+        # replace `*` with actual symbols
+        replacement_list = list(replacement_str)
+        url_list = list(url)
+
+        offset = 0
+        save_bytes = 0
+        # this regex says: find ("*" but not "**") or ("**A", "**B", "**C", ..., "**-", "**_")
+        for m in re.finditer(r"(?<!\*)\*(?!\*)|\*{2}[A-Za-z0-9-_]", url):
+
+            if m.group(0) == "*":
+                # we only need to replace one character here
+                url_list[m.start() + offset] = replacement_list.pop(0)
+            elif m.group(0).startswith("**"):
+                # we need to replace a certain number of bytes
+                # e.g., "foobar**Dfoo" --> "foobar#####foo"
+                num_bytes = replacement_str_mapping[m.group(0)[-1]]
+
+                if save_bytes != 0:
+                    num_bytes += save_bytes
+                    save_bytes = 0  # reset
+
+
+                # replace "**[A-Za-z0-9-_]" with replacement characters
+                replacement_chars = list()
+
+                i = 0
+                while i < num_bytes:
+                    # previously we assumed that the replacement_str_mapping
+                    # referred to the number of characters, but it actually
+                    # represents the number of bytes to copy over, given the UTF-8
+                    # encoding. so we replace the for loop with a while loop and
+                    # increment a counter with the size of each character being
+                    # replaced.
+                    replacement_char = replacement_list.pop(0)
+                    replacement_chars.append(replacement_char)
+                    i += len(replacement_char.encode("utf-8"))
+
+                    # there seems to be an edge case at the boundaries: if we have
+                    # a long consecutive list of non-ascii characters to replace,
+                    # pp seems to break it up into segments of length 65 (e.g.,
+                    # num_bytes % 65). this doesn't quite work if each character is
+                    # of size 2, and we'll hit an empty list sooner than later and
+                    # get an error.
+                    #
+                    # we will resolve this by checking the _next_ character in the
+                    # list and checking if its size will be greater than (num_bytes
+                    # - i), where `i` is the current number of bytes we've replaced
+                    # so far. if so, "save" the difference and add it on to the
+                    # next segment.
+                    #
+                    # for example, if we have 124 bytes to replace, pp will break
+                    # it up into 65 (`**_`) and 59 (`**5`). all of the replacement
+                    # characters are 2 bytes, which means when we get to byte 64,
+                    # we have 1 byte left. similarly the 59 bytes in the next
+                    # segment doesn't make sense, because again all replacement
+                    # characters are 2 bytes. so we'll "save" the 1 byte and add it
+                    # on to the next segment (i.e., we're really treating this as
+                    # segments of 64 (`**-`) and 60 (`**6`)
+                    #
+                    # (presumably we could also search for and combine sequences of
+                    # replacement strings, i.e., if we see `**_**5`, we can combine
+                    # the two and add them together to get 65+59=124, and so on.)
+                    #
+                    if len(replacement_list) != 0:
+                        next_replacement_char = replacement_list[0]
+                        next_replacement_char_size = len(
+                            next_replacement_char.encode("utf-8")
+                        )
+
+                        if next_replacement_char_size > (num_bytes - i):
+                            # save the difference and add it to the next segment.
+                            save_bytes = num_bytes - i
+                            # break out of loop
+                            i += save_bytes
+
+                # replace a sub-list with a replacement list
+                # works nicely even if the replacement list is shorter than the sub-list
+                url_list[m.start() + offset : m.end() + offset] = replacement_chars
+
+                # update offset as we're modifying url_list in place
+                # (m.start() and m.end() refer to positions in the original `url` string)
+                offset += len(replacement_chars) - 3
             else:
-                return text[start_pos:len(text)]
-        try:
-            match = re.search(r"v3/__(.+?)__;(.*?)!", self.value, re.IGNORECASE)
-            embedded_url = match.group(1)
-            base64_characters = match.group(2)
+                # shouldn't get here
+                pass
 
-            single_slash = v3_single_slash.findall(embedded_url)
-            if single_slash and len(single_slash[0]) == 2:
-                embedded_url = single_slash[0][0] + "/" + single_slash[0][1]
-            embedded_url = unquote(embedded_url)
+        cleaned_url = "".join(url_list)
 
-            base64_characters += '=='
-            decoded_characters = base64.urlsafe_b64decode(base64_characters).decode("utf-8")
-            current_marker = 0
+        # we don't know whether the original URL was quoted or not, so
+        # give the option to unquote the URL.
+        if unquote_url:
+            cleaned_url = urllib.parse.unquote(cleaned_url)
 
-            decoded_url = substitute_tokens(embedded_url)
-            decoded_url = helpers.fix_possible_url(decoded_url)
-            return decoded_url if URL(decoded_url).is_url else ""
-        except AttributeError:
-            return ""
+        return cleaned_url
 
     def get_base64_urls(self) -> Set[str]:
         fixed_base64_values = {helpers.fix_possible_value(v) for v in self.get_base64_values()}
